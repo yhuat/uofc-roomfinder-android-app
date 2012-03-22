@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.esri.arcgis.android.samples.attributequery"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk android:minSdkVersion="10" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application
+        android:debuggable="true"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name" >
+        <activity
+            android:name="com.uofc.roomfinder.android.activities.MapActivity"
+            android:configChanges="orientation"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.uofc.roomfinder.android.activities.SearchActivity"
+            android:windowSoftInputMode="stateAlwaysVisible" >
+        </activity>
+        
+        <activity android:label="@string/app_name" android:name="org.mixare.MixView" 
+        android:screenOrientation="landscape"  
+        android:launchMode="singleTop" >
+        
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter> 
+            
+            <intent-filter>  
+                  <action android:name="android.intent.action.VIEW" />
+				  <category android:name="android.intent.category.DEFAULT" />
+				  <category android:name="android.intent.category.BROWSABLE" />
+				  <data android:scheme="http" android:mimeType="application/mixare-json"/>
+				  <data android:scheme="content" android:mimeType="application/mixare-json"/>
+				  <data android:scheme="file" android:mimeType="application/mixare-json"/>
+            </intent-filter>
+            
+            <intent-filter>
+        	    <action android:name="android.intent.action.SEARCH"/>
+        	</intent-filter>
+        	
+        </activity>
+        
+    </application>
+
+</manifest>

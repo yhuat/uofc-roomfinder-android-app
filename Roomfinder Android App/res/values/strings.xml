@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">UofC Roomfinder</string>
+    
+    <!-- MapActivity -->
+    <string name="map_btn_text">search for a room</string>
+    <string name="map_txt_initial_status">lat: long: alt: acc:</string>
+    
+
+    <!-- SearchForm -->
+    <string name="search_room1">ICT</string>
+    <string name="search_room2">MS</string>
+
+    <string-array name="search_room_list">
+        <item>@string/search_room1</item>
+        <item>@string/search_room2</item>
+    </string-array>
+
+    <string name="search_head">room search form</string>
+    <string name="search_input_room">please enter room</string>
+    <string name="search_btn_search">Search</string>
+    <string name="search_spinner_text">select building</string>
+
+    
+    
+</resources>
