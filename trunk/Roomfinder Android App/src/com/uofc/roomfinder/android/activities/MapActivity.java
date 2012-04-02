@@ -1,6 +1,5 @@
 package com.uofc.roomfinder.android.activities;
 
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -46,7 +45,7 @@ public class MapActivity extends Activity {
 	ImageButton btnArView;
 	ProgressDialog progressDialog;
 	TextView txtStatusBar;
-	
+
 	boolean actualizing = true;
 
 	// getter & setter
@@ -74,7 +73,7 @@ public class MapActivity extends Activity {
 		mapView.addLayer(new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_URL));
 
 		// add layer for buildings
-ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_BUILDINGS_URL);
+		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_BUILDINGS_URL);
 		buildingLayer.setOpacity(0.4f);
 		mapView.addLayer(buildingLayer);
 
@@ -90,7 +89,7 @@ ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Co
 				// switch to search form screen
 				Intent nextScreen = new Intent(getApplicationContext(), SearchActivity.class);
 				startActivityForResult(nextScreen, SEARCH_CODE); // start only for result
-				
+
 				BuildingDAOImpl.updateBuildingTable();
 			}
 		});
@@ -98,12 +97,14 @@ ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Co
 		// button for AR view
 		btnArView = (ImageButton) findViewById(R.id.btn_ar);
 		btnArView.setOnClickListener(new View.OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
 				Intent i = new Intent();
 				i.setAction(Intent.ACTION_VIEW);
-				i.setDataAndType(Uri.parse("http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings"), "application/mixare-json");
+				 i.setDataAndType(Uri.parse("http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings"),"application/mixare-json");
+				//i.setDataAndType(Uri.parse("http://mixare.org/geotest.php"), "application/mixare-json");
+
 				startActivity(i);
 			}
 		});
@@ -140,8 +141,8 @@ ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Co
 							txtStatusBar.setText("lat: " + locy + " long: " + locx + "\nalt: " + locz + " acc: " + accuracy + "m");
 
 							// actualize only if accuracy is better than 300m
-//							if (accuracy < 300) {
-							if (actualizing){
+							// if (accuracy < 300) {
+							if (actualizing) {
 								actualizing = false;
 								Point wgspoint = new Point(locx, locy);
 								Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP),
@@ -210,14 +211,14 @@ ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Co
 
 		Log.e("MapScreen", "searching room: " + room + " and building: " + building);
 
-		final  String BUILDING_SERVER_URL = "http://136.159.24.32/ArcGIS/rest/services/Buildings/MapServer";
-		final  String BUILDING_QUERY_LAYER = "0";
-		final  String BUILDING_ID_COLUMN_NAME = "SDE.DBO.Building_Info.BLDG_ID";
-		String targetLayer = BUILDING_SERVER_URL + "/" + BUILDING_QUERY_LAYER;
-		String whereClause = 	BUILDING_ID_COLUMN_NAME + " like '%'";
-		
-//		String targetLayer = Constants.GIS_MAPSERVER_URL + "/" + Constants.GIS_LAYER_ROOMS;
-//		String whereClause = "RM_ID='" + room + "'";
+		// final String BUILDING_SERVER_URL = "http://136.159.24.32/ArcGIS/rest/services/Buildings/MapServer";
+		// final String BUILDING_QUERY_LAYER = "0";
+		// final String BUILDING_ID_COLUMN_NAME = "SDE.DBO.Building_Info.BLDG_ID";
+		// String targetLayer = BUILDING_SERVER_URL + "/" + BUILDING_QUERY_LAYER;
+		// String whereClause = BUILDING_ID_COLUMN_NAME + " like '%'";
+
+		String targetLayer = Constants.GIS_MAPSERVER_URL + "/" + Constants.GIS_LAYER_ROOMS;
+		String whereClause = "RM_ID='" + room + "'";
 		// TODO: add building to where clause
 
 		Object[] queryParams = { targetLayer, whereClause, this };
