@@ -32,8 +32,9 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
-import com.uofc.roomfinder.android.map.AsyncMapQueryTask;
-import com.uofc.roomfinder.android.map.Constants;
+import com.uofc.roomfinder.android.util.BuildingDAOImpl;
+import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.util.async_tasks.RoomQuery;
 
 public class MapActivity extends Activity {
 
@@ -73,7 +74,7 @@ public class MapActivity extends Activity {
 		mapView.addLayer(new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_URL));
 
 		// add layer for buildings
-		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_BUILDINGS_URL);
+ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_BUILDINGS_URL);
 		buildingLayer.setOpacity(0.4f);
 		mapView.addLayer(buildingLayer);
 
@@ -89,6 +90,8 @@ public class MapActivity extends Activity {
 				// switch to search form screen
 				Intent nextScreen = new Intent(getApplicationContext(), SearchActivity.class);
 				startActivityForResult(nextScreen, SEARCH_CODE); // start only for result
+				
+				BuildingDAOImpl.updateBuildingTable();
 			}
 		});
 
@@ -100,7 +103,7 @@ public class MapActivity extends Activity {
 			public void onClick(View v) {
 				Intent i = new Intent();
 				i.setAction(Intent.ACTION_VIEW);
-				i.setDataAndType(Uri.parse("http://10.11.27.59:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings"), "application/mixare-json");
+				i.setDataAndType(Uri.parse("http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings"), "application/mixare-json");
 				startActivity(i);
 			}
 		});
@@ -141,7 +144,7 @@ public class MapActivity extends Activity {
 							if (actualizing){
 								actualizing = false;
 								Point wgspoint = new Point(locx, locy);
-								Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF),
+								Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP),
 										mapView.getSpatialReference());
 								Unit mapUnit = mapView.getSpatialReference().getUnit();
 								double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
@@ -207,13 +210,19 @@ public class MapActivity extends Activity {
 
 		Log.e("MapScreen", "searching room: " + room + " and building: " + building);
 
-		String targetLayer = Constants.GIS_MAPSERVER_URL + "/" + Constants.GIS_LAYER_ROOMS;
-		String whereClause = "RM_ID='" + room + "'";
+		final  String BUILDING_SERVER_URL = "http://136.159.24.32/ArcGIS/rest/services/Buildings/MapServer";
+		final  String BUILDING_QUERY_LAYER = "0";
+		final  String BUILDING_ID_COLUMN_NAME = "SDE.DBO.Building_Info.BLDG_ID";
+		String targetLayer = BUILDING_SERVER_URL + "/" + BUILDING_QUERY_LAYER;
+		String whereClause = 	BUILDING_ID_COLUMN_NAME + " like '%'";
+		
+//		String targetLayer = Constants.GIS_MAPSERVER_URL + "/" + Constants.GIS_LAYER_ROOMS;
+//		String whereClause = "RM_ID='" + room + "'";
 		// TODO: add building to where clause
 
 		Object[] queryParams = { targetLayer, whereClause, this };
 
-		AsyncMapQueryTask asyncQuery = new AsyncMapQueryTask();
+		RoomQuery asyncQuery = new RoomQuery();
 		asyncQuery.execute(queryParams);
 	}
 
