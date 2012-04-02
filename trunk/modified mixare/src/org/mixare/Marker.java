@@ -214,7 +214,9 @@ abstract public class Marker implements Comparable<Marker> {
 			float maxHeight = dw.getHeight();
 			dw.setStrokeWidth(maxHeight / 100f);
 			dw.setFill(false);
-			//dw.setColor(DataSource.getColor(type));
+			
+			//change color of circle
+			dw.setColor(Color.BLUE);
 			
 			//draw circle with radius depending on distance
 			//0.44 is approx. vertical fov in radians 
