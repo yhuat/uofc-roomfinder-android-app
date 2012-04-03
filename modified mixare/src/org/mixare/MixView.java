@@ -141,6 +141,8 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 	}
 
 	public void doError(Exception ex1) {
+		ex1.printStackTrace();
+		
 		if (!fError) {
 			fError = true;
 
@@ -278,7 +280,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 				// add the default datasources to the preferences file
 				SharedPreferences.Editor dataSourceEditor = DataSourceSettings.edit();
 				// TODO: datasources
-				dataSourceEditor.putString("DataSource0", "Wikipedia|http://ws.geonames.org/findNearbyWikipediaJSON|0|0|true");
+				//dataSourceEditor.putString("DataSource0", "Wikipedia|http://ws.geonames.org/findNearbyWikipediaJSON|0|0|true");
 				// dataSourceEditor.putString("DataSource1", "Twitter|http://search.twitter.com/search.json|2|0|true");
 				// dataSourceEditor.putString("DataSource2", "OpenStreetmap|http://open.mapquestapi.com/xapi/api/0.6/node[railway=station]|3|1|true");
 				// dataSourceEditor.putString("DataSource3", "Own URL|http://mixare.org/geotest.php|4|0|false");
@@ -287,6 +289,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			}
 
 		} catch (Exception ex) {
+			System.out.println("4");
 			doError(ex);
 		}
 	}
@@ -350,6 +353,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 				finish();
 			}
 		} catch (Exception ex) {
+			System.out.println("5");
 			doError(ex);
 		}
 	}
@@ -424,6 +428,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			downloadThread = new Thread(mixContext.downloadManager);
 			downloadThread.start();
 		} catch (Exception ex) {
+			System.out.println("1");
 			doError(ex);
 			try {
 				if (sensorMgr != null) {
@@ -916,6 +921,7 @@ class AugmentedView extends View {
 
 			app.killOnError();
 		} catch (Exception ex) {
+			System.out.println("2");
 			app.doError(ex);
 		}
 	}
@@ -969,6 +975,8 @@ class AugmentedView extends View {
 
 			MixView.dataView.draw(MixView.dWindow);
 		} catch (Exception ex) {
+			System.out.println("3");
+			ex.printStackTrace();
 			app.doError(ex);
 		}
 	}
