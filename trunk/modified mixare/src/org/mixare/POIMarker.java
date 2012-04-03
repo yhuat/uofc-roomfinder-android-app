@@ -65,7 +65,8 @@ public class POIMarker extends Marker {
 			dw.setStrokeWidth(maxHeight / 100f);
 			dw.setFill(false);
 
-				dw.setColor(getColour());
+			//dw.setColor(getColour());
+			dw.setColor(Color.GREEN);
 			
 			// draw circle with radius depending on distance
 			// 0.44 is approx. vertical fov in radians

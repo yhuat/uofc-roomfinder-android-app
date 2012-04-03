@@ -81,6 +81,7 @@ public class Json extends DataHandler {
 					}
 					if (ma != null)
 						markers.add(ma);
+					System.out.println(markers.size() + " markers loaded");
 				}
 			}
 		} catch (JSONException e) {
@@ -146,7 +147,8 @@ public class Json extends DataHandler {
 				link=jo.getString("webpage");
 			
         	if(datasource.getDisplay() == DataSource.DISPLAY.CIRCLE_MARKER) {
-			ma = new POIMarker(
+        		Log.v(MixView.TAG, "adding Mixare JSON object");
+        		ma = new POIMarker(
 					unescapeHTML(jo.getString("title"), 0), 
 					jo.getDouble("lat"), 
 					jo.getDouble("lng"), 
@@ -154,6 +156,7 @@ public class Json extends DataHandler {
 					link, 
 					datasource);
         	} else {
+        		Log.v(MixView.TAG, "adding Mixare JSON object (else)");
             	ma = new NavigationMarker(
             			unescapeHTML(jo.getString("title"), 0), 
         				jo.getDouble("lat"), 
