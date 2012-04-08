@@ -11,5 +11,9 @@
 	<classpathentry kind="var" path="ARCGIS_FOR_ANDROID/jackson-core-lgpl-1.6.3.jar"/>
 	<classpathentry kind="var" path="ARCGIS_FOR_ANDROID/jackson-mapper-lgpl-1.6.3.jar"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="/Users/benjaminlautenschlaeger/Documents/workspace/UofC Roomfinder Server/WebContent/WEB-INF/lib/commons-dbutils-1.4.jar"/>
+	<classpathentry kind="lib" path="/Users/benjaminlautenschlaeger/Documents/workspace/UofC Roomfinder Server/WebContent/WEB-INF/lib/gson-2.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/UofC Roomfinder Library"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

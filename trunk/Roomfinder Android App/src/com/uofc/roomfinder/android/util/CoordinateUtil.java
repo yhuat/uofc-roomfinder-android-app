@@ -9,6 +9,12 @@ import com.esri.core.map.Graphic;
 
 import static com.uofc.roomfinder.android.util.Constants.*;
 
+/**
+ * NAD83 -> Spartial Reference:26911 (Default ArcGIS SR)
+ * 
+ * @author benjaminlautenschlaeger
+ * 
+ */
 public class CoordinateUtil {
 
 	/**
@@ -18,18 +24,17 @@ public class CoordinateUtil {
 	 * @return center position
 	 */
 	public static Point getCenterCoordinateOfGraphicsArray(Graphic[] graphicsArray) {
-		
-		if (graphicsArray.length == 1){
-			//only one graphic element in array
+
+		if (graphicsArray.length == 1) {
+			// only one graphic element in array
 			return getCenterCoordinateOfGraphic(graphicsArray[0]);
-		}else{
-			//multiple graphic elements in array
-			//TODO: write logic for more graphic elements
+		} else {
+			// multiple graphic elements in array
+			// TODO: write logic for more graphic elements
 			return getCenterCoordinateOfGraphic(graphicsArray[0]);
 		}
 	}
-	
-	
+
 	/**
 	 * gets center position of graphic element
 	 * 
@@ -40,8 +45,8 @@ public class CoordinateUtil {
 
 		Envelope env = new Envelope();
 		graphic.getGeometry().queryEnvelope(env);
-		
-		return  env.getCenter();
+
+		return env.getCenter();
 	}
 
 	/**
@@ -53,10 +58,9 @@ public class CoordinateUtil {
 	public static Point getCenterCoordinateOfGeometry(Geometry geometry) {
 		Envelope env = new Envelope();
 		geometry.queryEnvelope(env);
-		
-		return  env.getCenter();
+
+		return env.getCenter();
 	}
-	
 
 	/**
 	 * transform the given geometry (with the given spatial ref) into a a WGS84 projection
@@ -67,12 +71,23 @@ public class CoordinateUtil {
 	 */
 	public static Geometry transformGeometryToWGS84(Geometry geometry, SpatialReference originalSpatialReference) {
 		SpatialReference wgs84sr = SpatialReference.create(SPARTIAL_REF_WGS84);
-		Geometry resultGeometry = GeometryEngine.project(
-				geometry, originalSpatialReference, wgs84sr);
-		
+		Geometry resultGeometry = GeometryEngine.project(geometry, originalSpatialReference, wgs84sr);
+
 		return resultGeometry;
 	}
-	
-	
+
+	/**
+	 * transform the given geometry (with the given spatial ref) into a a NAD83 projection
+	 * 
+	 * @param geometry
+	 * @param originalSpatialReference
+	 * @return
+	 */
+	public static Geometry transformGeometryToNAD83(Geometry geometry, SpatialReference originalSpatialReference) {
+		SpatialReference nad83sr = SpatialReference.create(SPARTIAL_REF_MAP);
+		Geometry resultGeometry = GeometryEngine.project(geometry, originalSpatialReference, nad83sr);
+
+		return resultGeometry;
+	}
 
 }
