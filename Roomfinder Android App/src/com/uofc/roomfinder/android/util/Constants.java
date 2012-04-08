@@ -7,6 +7,7 @@ public class Constants {
 
 	public final static String GIS_MAPSERVER_URL = "http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer";
 	public final static String GIS_MAPSERVER_BUILDINGS_URL = "http://136.159.24.32/ArcGIS/rest/services/Buildings/MapServer";
+	public final static String REST_BUILDINGS_URL = "http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings";
 
 	public final static int GIS_LAYER_LINES = 0;
 	public final static int GIS_LAYER_ROOMS = 1;

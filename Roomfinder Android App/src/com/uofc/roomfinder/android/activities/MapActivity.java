@@ -1,5 +1,7 @@
 package com.uofc.roomfinder.android.activities;
 
+import org.codehaus.jackson.JsonParser;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -31,9 +33,12 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
+import com.esri.core.tasks.ags.geoprocessing.GPParameter;
+import com.esri.core.tasks.ags.geoprocessing.Geoprocessor;
 import com.uofc.roomfinder.android.util.BuildingDAOImpl;
 import com.uofc.roomfinder.android.util.Constants;
-import com.uofc.roomfinder.util.async_tasks.RoomQuery;
+import com.uofc.roomfinder.android.util.async_tasks.RoomQuery;
+import com.uofc.roomfinder.entities.routing.RoutePoint;
 
 public class MapActivity extends Activity {
 
@@ -45,6 +50,15 @@ public class MapActivity extends Activity {
 	ImageButton btnArView;
 	ProgressDialog progressDialog;
 	TextView txtStatusBar;
+	RoutePoint currentPosition = new RoutePoint(0,0);
+
+	public RoutePoint getCurrentPosition() {
+		return currentPosition;
+	}
+
+	public void setCurrentPosition(RoutePoint currentPosition) {
+		this.currentPosition = currentPosition;
+	}
 
 	boolean actualizing = true;
 
@@ -85,12 +99,9 @@ public class MapActivity extends Activity {
 		btnSearchForm.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-
 				// switch to search form screen
 				Intent nextScreen = new Intent(getApplicationContext(), SearchActivity.class);
 				startActivityForResult(nextScreen, SEARCH_CODE); // start only for result
-
-				BuildingDAOImpl.updateBuildingTable();
 			}
 		});
 
@@ -99,12 +110,10 @@ public class MapActivity extends Activity {
 		btnArView.setOnClickListener(new View.OnClickListener() {
 
 			@Override
-			public void onClick(View v) {
+			public void onClick(View v) {				
 				Intent i = new Intent();
 				i.setAction(Intent.ACTION_VIEW);
-				 i.setDataAndType(Uri.parse("http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings"),"application/mixare-json");
-				//i.setDataAndType(Uri.parse("http://mixare.org/geotest.php"), "application/mixare-json");
-
+				i.setDataAndType(Uri.parse(Constants.REST_BUILDINGS_URL),"application/mixare-json");
 				startActivity(i);
 			}
 		});
@@ -131,12 +140,14 @@ public class MapActivity extends Activity {
 
 						// Zooms to the current location when first GPS fix arrives
 						public void onLocationChanged(Location loc) {
-							System.out.println("onLocationChange");
-
+							System.out.println("onLocationChange");			
+							
 							double locy = loc.getLatitude();
 							double locx = loc.getLongitude();
 							double locz = loc.getAltitude();
 							float accuracy = loc.getAccuracy();
+							
+							currentPosition = new RoutePoint(locx, locy);
 
 							txtStatusBar.setText("lat: " + locy + " long: " + locx + "\nalt: " + locz + " acc: " + accuracy + "m");
 
@@ -210,12 +221,6 @@ public class MapActivity extends Activity {
 		String building = intent.getStringExtra("building");
 
 		Log.e("MapScreen", "searching room: " + room + " and building: " + building);
-
-		// final String BUILDING_SERVER_URL = "http://136.159.24.32/ArcGIS/rest/services/Buildings/MapServer";
-		// final String BUILDING_QUERY_LAYER = "0";
-		// final String BUILDING_ID_COLUMN_NAME = "SDE.DBO.Building_Info.BLDG_ID";
-		// String targetLayer = BUILDING_SERVER_URL + "/" + BUILDING_QUERY_LAYER;
-		// String whereClause = BUILDING_ID_COLUMN_NAME + " like '%'";
 
 		String targetLayer = Constants.GIS_MAPSERVER_URL + "/" + Constants.GIS_LAYER_ROOMS;
 		String whereClause = "RM_ID='" + room + "'";
