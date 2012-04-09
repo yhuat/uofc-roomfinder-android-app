@@ -1,6 +1,6 @@
 package com.uofc.roomfinder.android.activities;
 
-import org.codehaus.jackson.JsonParser;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -13,11 +13,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.LocationService;
@@ -33,11 +30,9 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.geometry.Unit;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
-import com.esri.core.tasks.ags.geoprocessing.GPParameter;
-import com.esri.core.tasks.ags.geoprocessing.Geoprocessor;
-import com.uofc.roomfinder.android.util.BuildingDAOImpl;
+import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
-import com.uofc.roomfinder.android.util.async_tasks.RoomQuery;
+import com.uofc.roomfinder.android.util.tasks.RoomQuery;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 
 public class MapActivity extends Activity {
@@ -50,15 +45,6 @@ public class MapActivity extends Activity {
 	ImageButton btnArView;
 	ProgressDialog progressDialog;
 	TextView txtStatusBar;
-	RoutePoint currentPosition = new RoutePoint(0,0);
-
-	public RoutePoint getCurrentPosition() {
-		return currentPosition;
-	}
-
-	public void setCurrentPosition(RoutePoint currentPosition) {
-		this.currentPosition = currentPosition;
-	}
 
 	boolean actualizing = true;
 
@@ -84,10 +70,11 @@ public class MapActivity extends Activity {
 		mapView = (MapView) findViewById(R.id.map);
 
 		// add layer for room data
-		mapView.addLayer(new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_URL));
+		//TODO: activate layer
+		//mapView.addLayer(new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_URL));
 
 		// add layer for buildings
-		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_BUILDINGS_URL);
+		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
 		buildingLayer.setOpacity(0.4f);
 		mapView.addLayer(buildingLayer);
 
@@ -110,10 +97,10 @@ public class MapActivity extends Activity {
 		btnArView.setOnClickListener(new View.OnClickListener() {
 
 			@Override
-			public void onClick(View v) {				
+			public void onClick(View v) {
 				Intent i = new Intent();
 				i.setAction(Intent.ACTION_VIEW);
-				i.setDataAndType(Uri.parse(Constants.REST_BUILDINGS_URL),"application/mixare-json");
+				i.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
 				startActivity(i);
 			}
 		});
@@ -140,21 +127,23 @@ public class MapActivity extends Activity {
 
 						// Zooms to the current location when first GPS fix arrives
 						public void onLocationChanged(Location loc) {
-							System.out.println("onLocationChange");			
-							
+							System.out.println("onLocationChange");
+
 							double locy = loc.getLatitude();
 							double locx = loc.getLongitude();
 							double locz = loc.getAltitude();
 							float accuracy = loc.getAccuracy();
-							
-							currentPosition = new RoutePoint(locx, locy);
 
+							// save current position in singleton
+							DataModel.getInstance().setCurrentPosition(new RoutePoint(locx, locy));
+
+							// debug print on display
 							txtStatusBar.setText("lat: " + locy + " long: " + locx + "\nalt: " + locz + " acc: " + accuracy + "m");
 
 							// actualize only if accuracy is better than 300m
 							// if (accuracy < 300) {
 							if (actualizing) {
-								actualizing = false;
+								// actualizing = false;
 								Point wgspoint = new Point(locx, locy);
 								Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP),
 										mapView.getSpatialReference());
@@ -212,24 +201,28 @@ public class MapActivity extends Activity {
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		System.out.println("onActivityResult");
 		super.onActivityResult(requestCode, resultCode, data);
 
 		// Receiving the Data
 		Intent intent = data;
-		String room = intent.getStringExtra("room");
-		String building = intent.getStringExtra("building");
+		String receivedData = intent.getStringExtra("room");
+
+		// split in room and building
+		// received data should look like ICT550
+		String regex = "(?<=[\\w&&\\D])(?=\\d)";
+		String building = receivedData.split(regex)[0];
+		String room = receivedData.split(regex)[1];
 
 		Log.e("MapScreen", "searching room: " + room + " and building: " + building);
 
-		String targetLayer = Constants.GIS_MAPSERVER_URL + "/" + Constants.GIS_LAYER_ROOMS;
-		String whereClause = "RM_ID='" + room + "'";
-		// TODO: add building to where clause
+		//set layer and build where clause for query
+		String targetLayer = Constants.MAPSERVER_ROOM_QUERY_URL;
+		String whereClause = "RM_ID='" + room + "'" +
+							 "BLD_ID='" + building + "'";
 
-		Object[] queryParams = { targetLayer, whereClause, this };
-
+		//start query task
+		Object[] queryParams = {targetLayer, whereClause, this};
 		RoomQuery asyncQuery = new RoomQuery();
 		asyncQuery.execute(queryParams);
 	}
-
 }

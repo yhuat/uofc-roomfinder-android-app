@@ -9,8 +9,10 @@
         android:id="@+id/textview"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
         android:text="@string/search_head" />
 
+    <!--
     <TextView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/textviewoverspinner"
@@ -26,27 +28,41 @@
         android:entries="@array/search_room_list"
         android:prompt="@string/search_spinner_text" >
     </Spinner>
+    -->
+
+    <LinearLayout
+        android:id="@+id/LinearLayout02"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
+            android:id="@+id/EditSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/search_input_field"
+            android:inputType="text" />
+
+        <Button
+            android:id="@+id/btnFinishForm"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/search_btn_search" />
+    </LinearLayout>
 
     <TextView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/textviewoverroom"
+        android:id="@+id/textviewoversearch"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/search_input_room" />
+        android:layout_marginBottom="10dp"
+        android:text="@string/search_under_input_field" />
 
-    <EditText
-        android:id="@+id/EditTextRoom"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/search_input_room"
-        android:inputType="numberSigned" />
-
-    <Button
-        android:id="@+id/btnFinishForm"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="15dip"
-        android:text="@string/search_btn_search" />
+    <ListView
+        android:id="@+id/resultList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
 
 </LinearLayout>
