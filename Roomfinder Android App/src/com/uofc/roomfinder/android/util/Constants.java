@@ -5,12 +5,25 @@ package com.uofc.roomfinder.android.util;
  */
 public class Constants {
 
-	public final static String GIS_MAPSERVER_URL = "http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer";
-	public final static String GIS_MAPSERVER_BUILDINGS_URL = "http://136.159.24.32/ArcGIS/rest/services/Buildings/MapServer";
-	public final static String REST_BUILDINGS_URL = "http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/annotation/cat/buildings";
+	//old URLs
+	//public final static String GIS_MAPSERVER_URL = "http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer";
+	//public final static int GIS_LAYER_LINES = 0;
+	//public final static int GIS_LAYER_ROOMS = 1;
+	
+	
+	//services hosted by the UofC
+	public final static String UOFC_ARCGIS_SERVER_URL = "http://136.159.24.32/ArcGIS/rest/services";
+	public final static String MAPSERVER_BUILDINGS_URL = UOFC_ARCGIS_SERVER_URL + "/Buildings/MapServer";
+	public final static String MAPSERVER_ROOM_QUERY_URL = UOFC_ARCGIS_SERVER_URL + "/Rooms/Rooms/MapServer/111";
+	
+	
+	//http://136.159.24.32/ArcGIS/rest/services
+	
+	//services hostes on the roomfinder server
+	public final static String ROOMFINDER_SERVER_URL = "http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest";
+	public final static String REST_ANNOTATION_BUILDINGS_URL = ROOMFINDER_SERVER_URL + "/annotation/cat/buildings";
+	public final static String REST_CONTACTS_URL = ROOMFINDER_SERVER_URL + "/contact/name/";
 
-	public final static int GIS_LAYER_LINES = 0;
-	public final static int GIS_LAYER_ROOMS = 1;
 
 	public final static int SPARTIAL_REF_MAP = 26911;
 	public final static int SPARTIAL_REF_WGS84 = 4326;
