@@ -16,6 +16,11 @@ public class Constants {
 	public final static String MAPSERVER_BUILDINGS_URL = UOFC_ARCGIS_SERVER_URL + "/Buildings/MapServer";
 	public final static String MAPSERVER_ROOM_QUERY_URL = UOFC_ARCGIS_SERVER_URL + "/Rooms/Rooms/MapServer/111";
 	
+	public final static String QUERY_COL_RM_ID = "SDE.DBO.Building_Room.RM_ID";
+	public final static String QUERY_COL_BLD_ID = "SDE.DBO.Building_Room.BLD_ID";
+	
+	
+	
 	
 	//http://136.159.24.32/ArcGIS/rest/services
 	
@@ -25,14 +30,14 @@ public class Constants {
 	public final static String REST_CONTACTS_URL = ROOMFINDER_SERVER_URL + "/contact/name/";
 
 
-	public final static int SPARTIAL_REF_MAP = 26911;
+	public final static int SPARTIAL_REF_NAD83 = 26911;
 	public final static int SPARTIAL_REF_WGS84 = 4326;
 	
 
 	// initial extent for room map server data
-	public static final double MAX_X_QUERY_COORDINATE = 701235.973828125;
-	public static final double MAX_Y_QUERY_COORDINATE = 5662703.85075684;
-	public static final double MIN_X_QUERY_COORDINATE = 700913.603198242;
-	public static final double MIN_Y_QUERY_COORDINATE = 5662605.69160156;
+	public static final double MAX_X_QUERY_COORDINATE = 637778.954772949;
+	public static final double MAX_Y_QUERY_COORDINATE = 5638651.80877686;
+	public static final double MIN_X_QUERY_COORDINATE = 701643.474182129;
+	public static final double MIN_Y_QUERY_COORDINATE = 5671355.65698242;
 
 }

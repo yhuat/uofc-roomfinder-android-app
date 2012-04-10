@@ -60,10 +60,18 @@ public class SearchActivity extends Activity {
 				final Intent intent = new Intent();
 
 				// send query to REST service (which querys the public UofC LDAP directory)
-				final ContactList contacts = new ContactList(UrlReader.readFromURL(Constants.REST_CONTACTS_URL + inputSearch.getText().toString()));
+				final ContactList contacts = new ContactList(UrlReader.readFromURL(Constants.REST_CONTACTS_URL + inputSearch.getText().toString()));		
 
-				// 1 result -> return it
-				if (contacts.size() == 1) {
+				// 0 result -> display: no result found
+				if (contacts.size() == 0) {
+					List<String> values = new LinkedList<String>();
+					values.add("no result found");
+					String[] valuesStringArray = Arrays.copyOf(values.toArray(), values.toArray().length, String[].class);
+					ArrayAdapter<String> adapter = new ArrayAdapter<String>(SearchActivity.this, R.layout.list_item_search_form, R.id.product_label,
+							valuesStringArray);
+					listView.setAdapter(adapter);
+					// 1 result -> return it
+				} else if (contacts.size() == 1) {
 					// send data to next activity
 					intent.putExtra("room", contacts.get(0).getRoomNumber().get(0));
 					setResult(RESULT_OK, intent);
@@ -74,7 +82,16 @@ public class SearchActivity extends Activity {
 
 					// add contact data to values list
 					for (Contact contact : contacts) {
-						values.add(contact.getRoomNumber().get(0) + " (" + contact.getPreName() + " " + contact.getSurName() + ")");
+						String strContact = "(";
+						if (contact.getPreName() != null) {
+							strContact += contact.getPreName();
+							if (contact.getSurName() != null)
+								strContact += " ";
+						}
+						if (contact.getSurName() != null)
+							strContact += contact.getSurName();
+						strContact += ")";
+						values.add(contact.getRoomNumber().get(0) + strContact);
 					}
 
 					String[] valuesStringArray = Arrays.copyOf(values.toArray(), values.toArray().length, String[].class);
@@ -87,7 +104,10 @@ public class SearchActivity extends Activity {
 					listView.setOnItemClickListener(new OnItemClickListener() {
 						@Override
 						public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-							// System.out.println(contacts.get(position).getRoomNumber());
+							System.out.println(contacts.get(position).getPreName());
+							System.out.println(contacts.get(position).getRoomNumber());
+
+							System.out.println(position);
 							intent.putExtra("room", contacts.get(position).getRoomNumber().get(0));
 							setResult(RESULT_OK, intent);
 							finish();

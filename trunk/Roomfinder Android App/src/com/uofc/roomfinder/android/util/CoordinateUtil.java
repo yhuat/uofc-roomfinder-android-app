@@ -84,7 +84,7 @@ public class CoordinateUtil {
 	 * @return
 	 */
 	public static Geometry transformGeometryToNAD83(Geometry geometry, SpatialReference originalSpatialReference) {
-		SpatialReference nad83sr = SpatialReference.create(SPARTIAL_REF_MAP);
+		SpatialReference nad83sr = SpatialReference.create(SPARTIAL_REF_NAD83);
 		Geometry resultGeometry = GeometryEngine.project(geometry, originalSpatialReference, nad83sr);
 
 		return resultGeometry;

@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.esri.android.map.GraphicsLayer;
+import com.esri.android.map.Layer;
 import com.esri.android.map.LocationService;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
@@ -32,6 +33,8 @@ import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.android.util.MyLocation;
+import com.uofc.roomfinder.android.util.MyLocation.LocationResult;
 import com.uofc.roomfinder.android.util.tasks.RoomQuery;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 
@@ -69,15 +72,33 @@ public class MapActivity extends Activity {
 		setContentView(R.layout.map_activity_layout);
 		mapView = (MapView) findViewById(R.id.map);
 
-		// add layer for room data
-		//TODO: activate layer
-		//mapView.addLayer(new ArcGISDynamicMapServiceLayer(Constants.GIS_MAPSERVER_URL));
-
+		// WTF?????? without this layer no layer is displayed, I have no Idea why!
+		// simple workaround: add it and set the visibility to false...
+		ArcGISDynamicMapServiceLayer beastLayer = new ArcGISDynamicMapServiceLayer("http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer");
+		beastLayer.setVisible(false);
+		mapView.addLayer(beastLayer);
+		
+		//layer for rooms
+		ArcGISDynamicMapServiceLayer roomLayer = new ArcGISDynamicMapServiceLayer("http://136.159.24.32/ArcGIS/rest/services/Rooms/Rooms/MapServer");
+		roomLayer.setVisible(true);	
+		mapView.addLayer(roomLayer);	
+		
 		// add layer for buildings
 		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
 		buildingLayer.setOpacity(0.4f);
 		mapView.addLayer(buildingLayer);
 
+		// graphics layer for routes and POIs
+		graphicsLayer = new GraphicsLayer();
+		SimpleRenderer sr = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
+		graphicsLayer.setRenderer(sr);
+		mapView.addLayer(graphicsLayer);
+
+		//location listener
+		DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126));
+		System.out.println(DataModel.getInstance().getCurrentPositionWGS84().getX());
+		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX());
+		
 		// textBTN
 		txtStatusBar = (TextView) findViewById(R.id.txt_status);
 
@@ -105,6 +126,8 @@ public class MapActivity extends Activity {
 			}
 		});
 
+		
+		/*
 		mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
 
 			private static final long serialVersionUID = 1L;
@@ -112,14 +135,16 @@ public class MapActivity extends Activity {
 			@Override
 			public void onStatusChanged(Object source, STATUS status) {
 
+				System.out.println("---Status: " + status);
+				System.out.println("----1: " + mapView.getLayer(0));
+				//System.out.println("----2: " + mapView.getLayer(1));
+				
+				//mapView.getLayer(1).setVisible(false);
+				
 				if (source == mapView && status == STATUS.INITIALIZED) {
 
-					// Initialize graphics layer
-					graphicsLayer = new GraphicsLayer();
-					SimpleRenderer sr = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
-					graphicsLayer.setRenderer(sr);
-					mapView.addLayer(graphicsLayer);
-
+					
+					
 					// set location listener
 					LocationService ls = mapView.getLocationService();
 					ls.setAutoPan(false);
@@ -134,6 +159,10 @@ public class MapActivity extends Activity {
 							double locz = loc.getAltitude();
 							float accuracy = loc.getAccuracy();
 
+							// TODO test
+							locy = 51.080652;
+							locx = -114.129195;
+
 							// save current position in singleton
 							DataModel.getInstance().setCurrentPosition(new RoutePoint(locx, locy));
 
@@ -142,16 +171,18 @@ public class MapActivity extends Activity {
 
 							// actualize only if accuracy is better than 300m
 							// if (accuracy < 300) {
-							if (actualizing) {
-								// actualizing = false;
-								Point wgspoint = new Point(locx, locy);
-								Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP),
-										mapView.getSpatialReference());
-								Unit mapUnit = mapView.getSpatialReference().getUnit();
-								double zoomWidth = Unit.convertUnits(5, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
-								Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-								mapView.setExtent(zoomExtent);
-							}
+							// if (actualizing) {
+							// actualizing = false;
+							Point wgspoint = new Point(locx, locy);
+							Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP),
+									mapView.getSpatialReference());
+							Unit mapUnit = mapView.getSpatialReference().getUnit();
+							//System.out.println(mapUnit);
+							double zoomWidth = Unit.convertUnits(0.08, Unit.create(LinearUnit.Code.MILE_US), mapUnit);
+							System.out.println(zoomWidth);
+							Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
+							mapView.setExtent(zoomExtent);
+							// }
 						}
 
 						@Override
@@ -183,7 +214,7 @@ public class MapActivity extends Activity {
 
 				}
 			}
-		});
+		});*/
 	}
 
 	@Override
@@ -205,6 +236,11 @@ public class MapActivity extends Activity {
 
 		// Receiving the Data
 		Intent intent = data;
+		
+		//if no data then return
+		if (data == null)
+			return;
+		
 		String receivedData = intent.getStringExtra("room");
 
 		// split in room and building
@@ -215,13 +251,12 @@ public class MapActivity extends Activity {
 
 		Log.e("MapScreen", "searching room: " + room + " and building: " + building);
 
-		//set layer and build where clause for query
+		// set layer and build where clause for query
 		String targetLayer = Constants.MAPSERVER_ROOM_QUERY_URL;
-		String whereClause = "RM_ID='" + room + "'" +
-							 "BLD_ID='" + building + "'";
+		String whereClause = Constants.QUERY_COL_RM_ID + "='" + room + "'" + " AND " + Constants.QUERY_COL_BLD_ID + "='" + building + "'";
 
-		//start query task
-		Object[] queryParams = {targetLayer, whereClause, this};
+		// start query task
+		Object[] queryParams = { targetLayer, whereClause, this };
 		RoomQuery asyncQuery = new RoomQuery();
 		asyncQuery.execute(queryParams);
 	}
