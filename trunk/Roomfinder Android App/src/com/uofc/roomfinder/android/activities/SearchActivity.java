@@ -1,5 +1,6 @@
 package com.uofc.roomfinder.android.activities;
 
+import static com.uofc.roomfinder.android.util.Constants.*;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -15,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Spinner;
 
 import com.esri.arcgis.android.samples.attributequery.R;
 import com.uofc.roomfinder.android.util.Constants;
@@ -26,8 +28,7 @@ public class SearchActivity extends Activity {
 
 	EditText inputSearch;
 	ListView listView;
-
-	// Spinner inputBuilding;
+	Spinner spinnerImpedance;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -37,13 +38,19 @@ public class SearchActivity extends Activity {
 		inputSearch = (EditText) findViewById(R.id.EditSearch);
 		listView = (ListView) findViewById(R.id.resultList);
 
-		// inputBuilding = (Spinner) findViewById(R.id.SpinnerBuilding);
+		spinnerImpedance = (Spinner) findViewById(R.id.spinner_imdedance);
 		Button btnFinishForm = (Button) findViewById(R.id.btnFinishForm);
 
 		// Listening to button event
 		btnFinishForm.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
+
+				// if no text is set do nothing
+				if (inputSearch.getText().toString().equals("")) {
+					// TODO: add message to view: no search criteria found, for back use back button
+					return;
+				}
 
 				// TODO: remove in final version. url has to be accessed in an async thread
 				try {
@@ -58,9 +65,11 @@ public class SearchActivity extends Activity {
 
 				// Starting a new Intent (back to MapActivity)
 				final Intent intent = new Intent();
+				System.out.println(spinnerImpedance.getSelectedItemPosition());
+				intent.putExtra("impedance", getImpedanceAttributeBySpinnerID((int) spinnerImpedance.getSelectedItemId()));
 
 				// send query to REST service (which querys the public UofC LDAP directory)
-				final ContactList contacts = new ContactList(UrlReader.readFromURL(Constants.REST_CONTACTS_URL + inputSearch.getText().toString()));		
+				final ContactList contacts = new ContactList(UrlReader.readFromURL(Constants.REST_CONTACTS_URL + inputSearch.getText().toString()));
 
 				// 0 result -> display: no result found
 				if (contacts.size() == 0) {
@@ -115,7 +124,32 @@ public class SearchActivity extends Activity {
 					});
 				}
 			}
+
 		});
 
+	}
+
+	/**
+	 * helper method to get the impedance attribute by spinner ID e.g. for '0' it returns 'Length' -> impedance attribute for shortest path
+	 * 
+	 * @param selectedItemId
+	 *            selected spinner id
+	 * @return impedance attribute
+	 */
+	private String getImpedanceAttributeBySpinnerID(int selectedItemId) {
+
+		switch (selectedItemId) {
+		case 0:
+			return ROUTING_IMPEDANCE_SHORTEST_PATH;
+		case 1:
+			return ROUTING_IMPEDANCE_AVOID_INDOOR;
+		case 2:
+			return ROUTING_IMPEDANCE_AVOID_OUTDOOR;
+		case 3:
+			return ROUTING_IMPEDANCE_AVOID_STAIRS;
+
+		default:
+			return ROUTING_IMPEDANCE_SHORTEST_PATH;
+		}
 	}
 }

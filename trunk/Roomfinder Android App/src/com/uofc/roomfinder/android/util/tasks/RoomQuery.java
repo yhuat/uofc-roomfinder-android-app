@@ -7,6 +7,7 @@ import static com.uofc.roomfinder.android.util.Constants.MIN_Y_QUERY_COORDINATE;
 import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
 
 import java.lang.reflect.Method;
+import java.util.Vector;
 
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -21,12 +22,15 @@ import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.FeatureSet;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleLineSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.core.symbol.Symbol;
+import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
 import com.esri.core.tasks.ags.query.Query;
 import com.esri.core.tasks.ags.query.QueryTask;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.activities.MapActivity;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
+import com.uofc.roomfinder.android.util.RouteUtil;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 
@@ -37,6 +41,7 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 	final static int CLEAR_RESULT = 3;
 
 	private MapActivity mapActivity = null;
+	private String impedanceAttribute = null;
 
 	@Override
 	protected void onPreExecute() {
@@ -61,6 +66,10 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 		String queryUrl = (String) params[0];
 		String whereClause = (String) params[1];
 		this.mapActivity = (MapActivity) params[2];
+
+		// perhaps there could be an impedance attribute be set
+		if (params.length > 2)
+			impedanceAttribute = (String) params[3];
 
 		// set loading screen
 		// this.mapActivity.setProgressDialog(ProgressDialog.show(this.mapActivity, "", "Please wait....query task is executing"));
@@ -87,7 +96,7 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 	}
 
 	@Override
-	protected void onPostExecute(FeatureSet result) {	
+	protected void onPostExecute(FeatureSet result) {
 
 		// TODO: remove in final version. url has to be accessed in an async thread
 		try {
@@ -102,13 +111,13 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 
 		System.out.println(result);
 		System.out.println(result.getGraphics().length);
-		
+
 		// if there is an result
 		if (result != null && result.getGraphics() != null && result.getGraphics().length > 0) {
 
-			//remove graphics from graphicslayer
+			// remove graphics from graphicslayer
 			mapActivity.getGraphicsLayer().removeAll();
-			
+
 			// display graphic
 			Graphic[] grs = result.getGraphics();
 			mapActivity.getGraphicsLayer().addGraphics(grs);
@@ -119,7 +128,27 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 			Point endPoint = CoordinateUtil.getCenterCoordinateOfGeometry(grs[0].getGeometry());
 			System.out.println(startPoint.getX() + " - " + startPoint.getY());
 			System.out.println(endPoint.getX() + " - " + endPoint.getY());
-			Route route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()));
+
+			Route route = null;
+			// if there is an impedance attribute pay attention to it...
+			if (impedanceAttribute != null)
+				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()), impedanceAttribute);
+			else
+				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()));
+
+			Vector<Integer> tmp = RouteUtil.getSegmentsOfRoute(route);
+
+			for (Integer waypoint : tmp) {
+
+				RoutePoint e = route.getPath().get(waypoint);
+				
+				Graphic graphic = new Graphic(new Point(e.getX(), e.getY()), new SimpleMarkerSymbol(Color.RED, 25, STYLE.CIRCLE));
+
+				mapActivity.getGraphicsLayer().addGraphic(graphic);
+
+			}
+
+			// TODO add everything to datamodel
 
 			if (route.getPath().size() > 1) {
 				// create poly line
@@ -148,11 +177,11 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
-			}else{
+			} else {
 				Toast toast = Toast.makeText(this.mapActivity, "no route could be found", Toast.LENGTH_LONG);
 				toast.show();
 			}
-		}else{
+		} else {
 			Toast toast = Toast.makeText(this.mapActivity, "building could not be found on map", Toast.LENGTH_LONG);
 			toast.show();
 		}

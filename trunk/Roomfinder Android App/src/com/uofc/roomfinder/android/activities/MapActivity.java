@@ -87,12 +87,20 @@ public class MapActivity extends Activity {
 		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
 		buildingLayer.setOpacity(0.4f);
 		mapView.addLayer(buildingLayer);
-
+		
 		// graphics layer for routes and POIs
 		graphicsLayer = new GraphicsLayer();
 		SimpleRenderer sr = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
 		graphicsLayer.setRenderer(sr);
 		mapView.addLayer(graphicsLayer);
+		
+		mapView.setMaxResolution(10000.0);
+		
+		System.out.println(mapView.getMaxResolution());
+		System.out.println(mapView.getMinResolution());
+		
+		//System.out.println(mapView.getMapBoundaryExtent().getYMax() +", "+ mapView.getMapBoundaryExtent().getXMax() + " - " +  mapView.getMapBoundaryExtent().getYMin() +","+mapView.getMapBoundaryExtent().getXMin());
+		
 
 		//location listener
 		DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126));
@@ -241,22 +249,23 @@ public class MapActivity extends Activity {
 		if (data == null)
 			return;
 		
-		String receivedData = intent.getStringExtra("room");
-
 		// split in room and building
 		// received data should look like ICT550
+		String receivedData = intent.getStringExtra("room");
 		String regex = "(?<=[\\w&&\\D])(?=\\d)";
 		String building = receivedData.split(regex)[0];
 		String room = receivedData.split(regex)[1];
+		
+		String impedance = intent.getStringExtra("impedance");
 
-		Log.e("MapScreen", "searching room: " + room + " and building: " + building);
+		Log.e("MapScreen", "searching room: " + room + " and building: " + building + "and impedance: " + impedance);
 
 		// set layer and build where clause for query
 		String targetLayer = Constants.MAPSERVER_ROOM_QUERY_URL;
 		String whereClause = Constants.QUERY_COL_RM_ID + "='" + room + "'" + " AND " + Constants.QUERY_COL_BLD_ID + "='" + building + "'";
 
 		// start query task
-		Object[] queryParams = { targetLayer, whereClause, this };
+		Object[] queryParams = { targetLayer, whereClause, this, impedance };
 		RoomQuery asyncQuery = new RoomQuery();
 		asyncQuery.execute(queryParams);
 	}

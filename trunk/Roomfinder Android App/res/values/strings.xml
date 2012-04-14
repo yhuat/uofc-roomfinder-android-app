@@ -23,6 +23,22 @@
     
     <string name="search_btn_search">Search</string>
     <string name="search_spinner_text">select building</string>
+    
+    <!-- impedance-->
+    <string name="search_impedance">Routing options</string>
+
+    <string name="impedance1">Shortest Path</string>
+    <string name="impedance2">Avoid Indoor</string>
+    <string name="impedance3">Avoid Outdoor</string>
+    <string name="impedance4">Avoid Stairs</string>
+    
+    <string-array name="search_impedance_list">
+        <item>@string/impedance1</item>
+        <item>@string/impedance2</item>
+        <item>@string/impedance3</item>
+        <item>@string/impedance4</item>
+    </string-array>
+    
 
     
     
