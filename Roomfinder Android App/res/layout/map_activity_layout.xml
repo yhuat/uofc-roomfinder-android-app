@@ -37,6 +37,24 @@
         android:orientation="horizontal" >
 
         <ImageButton
+            android:id="@+id/btn_minus"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/minus"
+            android:contentDescription="@string/map_btn_text" />
+        
+        <ImageButton
+            android:id="@+id/btn_plus"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/plus"
+            android:contentDescription="@string/map_btn_text" />
+        
+        <ImageButton
             android:id="@+id/btn_search"
             android:layout_width="64dp"
             android:layout_height="64dp"

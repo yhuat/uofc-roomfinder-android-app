@@ -7,30 +7,21 @@ import static com.uofc.roomfinder.android.util.Constants.MIN_Y_QUERY_COORDINATE;
 import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
 
 import java.lang.reflect.Method;
-import java.util.Vector;
 
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
 import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.Line;
 import com.esri.core.geometry.Point;
-import com.esri.core.geometry.Polyline;
-import com.esri.core.geometry.Segment;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.FeatureSet;
 import com.esri.core.map.Graphic;
-import com.esri.core.symbol.SimpleLineSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol;
-import com.esri.core.symbol.Symbol;
-import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
 import com.esri.core.tasks.ags.query.Query;
 import com.esri.core.tasks.ags.query.QueryTask;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.activities.MapActivity;
+import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
-import com.uofc.roomfinder.android.util.RouteUtil;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 
@@ -130,57 +121,24 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 			System.out.println(endPoint.getX() + " - " + endPoint.getY());
 
 			Route route = null;
+
 			// if there is an impedance attribute pay attention to it...
 			if (impedanceAttribute != null)
 				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()), impedanceAttribute);
 			else
 				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()));
 
-			Vector<Integer> tmp = RouteUtil.getSegmentsOfRoute(route);
-
-			for (Integer waypoint : tmp) {
-
-				RoutePoint e = route.getPath().get(waypoint);
-				
-				Graphic graphic = new Graphic(new Point(e.getX(), e.getY()), new SimpleMarkerSymbol(Color.RED, 25, STYLE.CIRCLE));
-
-				mapActivity.getGraphicsLayer().addGraphic(graphic);
-
-			}
-
-			// TODO add everything to datamodel
-
+			
+			DataModel.getInstance().setRoute(route);
+			
+			// display route
 			if (route.getPath().size() > 1) {
-				// create poly line
-				Polyline pLine = new Polyline();
-				Symbol lineSymbol = new SimpleLineSymbol(Color.BLUE, 4);
-
-				// add each segment of route to a poly line
-				Point pa = null;
-				Point pb = new Point(route.getPath().get(0).getX(), route.getPath().get(0).getY());
-				Segment segment = new Line();
-				try {
-					for (int i = 1; i < route.getPath().size(); i++) {
-						// get points from path
-						pa = pb;
-						pb = new Point(route.getPath().get(i).getX(), route.getPath().get(i).getY());
-
-						// set segment
-						segment.setStart(pa);
-						segment.setEnd(pb);
-
-						// add segment to polyLine
-						pLine.addSegment(segment, true);
-					}
-					// add created line to graphics layer
-					mapActivity.getGraphicsLayer().addGraphic(new Graphic(pLine, lineSymbol));
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				MapDrawer.displayRoute(route);
 			} else {
 				Toast toast = Toast.makeText(this.mapActivity, "no route could be found", Toast.LENGTH_LONG);
 				toast.show();
 			}
+
 		} else {
 			Toast toast = Toast.makeText(this.mapActivity, "building could not be found on map", Toast.LENGTH_LONG);
 			toast.show();
