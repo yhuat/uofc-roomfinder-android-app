@@ -90,4 +90,60 @@ public class CoordinateUtil {
 		return resultGeometry;
 	}
 
+	/**
+	 * determine the z-coordinate with the help of the floor_id
+	 * assume each floor has the height of 4m 
+	 * (same assumption was made when designing the network data sets)
+	 * 
+	 * @param floor
+	 * @return z-coordinate
+	 */
+	public static double getZCoordFromFloor(String floor) {
+
+		int numFloor;
+
+		// if the string is not a number follow the rules to determine z-coordinate
+		if (!isNumeric(floor)) {
+
+			if (floor.equals("B1")) {
+				numFloor = -1;
+			} else if (floor.equals("B2")) {
+				numFloor = -2;
+			} else if (floor.equals("P1")) {
+				numFloor = 14; // probably wrong
+			} else if (floor.equals("P2")) {
+				numFloor = 14; // probably wrong
+			} else if (floor.equals("M1")) {
+				numFloor = 1;
+			} else if (floor.equals("G1")) {
+				numFloor = -1;
+			} else if (floor.equals("G2")) {
+				numFloor = -2;
+			} else {
+				numFloor = 1;
+			}
+		}
+		// if it's a number convert it to int
+		else {
+			numFloor = Integer.parseInt(floor) - 1;
+		}
+		return numFloor * 4;
+	}
+
+	/**
+	 * checks whether a string is numeric or not
+	 * 
+	 * @param str
+	 *            potential number
+	 * @return
+	 */
+	public static boolean isNumeric(String str) {
+		try {
+			Integer.parseInt(str);
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+		return true;
+	}
+
 }

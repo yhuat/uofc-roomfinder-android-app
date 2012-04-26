@@ -26,9 +26,10 @@ public class RouteUtil {
 		Segment segment = null;
 		Polyline line = null;
 
-		System.out.println("->" + features.size());
+		System.out.println("waypoints -> " + features.size());
 
 		// cut route into segments by NAServer segments
+		waypoints.add(0);
 		for (RouteFeature feature : features) {
 			double currentSegmentLength = feature.getLength();
 			segment = new Line();
@@ -46,7 +47,7 @@ public class RouteUtil {
 				// add segment to polyLine
 				line.addSegment(segment, true);
 
-				System.out.println(i + " - " + line.calculateLength2D());
+				//System.out.println(i + " - " + line.calculateLength2D());
 
 				// current line = line length of NAServer
 				if (line.calculateLength2D() >= currentSegmentLength) {
@@ -55,10 +56,11 @@ public class RouteUtil {
 						waypoints.add(i);
 					break;
 				}
-
 			}
 		}
+		waypoints.add(route.getPath().size()-1);
 
+		//set waypoints to route
 		route.setWaypointIndicesOfPath(waypoints);
 
 		if (route.getWaypointIndicesOfPath().size() > 0) {

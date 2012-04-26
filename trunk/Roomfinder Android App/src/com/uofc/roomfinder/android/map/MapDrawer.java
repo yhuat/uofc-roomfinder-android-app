@@ -19,6 +19,8 @@ import com.uofc.roomfinder.entities.routing.RoutePoint;
 
 public class MapDrawer {
 
+	private static final double SEGMENT_ZOOM_FACTOR = 2.2;
+
 	/**
 	 * 
 	 */
@@ -43,7 +45,7 @@ public class MapDrawer {
 	 */
 	public static void displayRoute(Route route) {
 		int startPointOfPath = 0;
-		int endPointOfPath = route.getPath().size();
+		int endPointOfPath = route.getPath().size()-1;
 		displayRoute(route, startPointOfPath, endPointOfPath);
 	}
 	
@@ -98,8 +100,10 @@ public class MapDrawer {
 			//center route and zoom a bit out
 			Envelope env = new Envelope();
 			pLine.queryEnvelope(env);
-			DataModel.getInstance().getMap().getMapView().setExtent(env);
-			DataModel.getInstance().getMap().getMapView().zoomout();
+			
+			//create envelope which is a bit bigger than the route segment
+			Envelope newEnv = new Envelope(env.getCenter(), env.getWidth()*SEGMENT_ZOOM_FACTOR, env.getHeight()*SEGMENT_ZOOM_FACTOR);
+			DataModel.getInstance().getMap().getMapView().setExtent(newEnv);
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();

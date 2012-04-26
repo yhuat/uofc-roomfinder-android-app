@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.esri.arcgis.android.samples.attributequery.R;
+import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.entities.Contact;
 import com.uofc.roomfinder.entities.ContactList;
@@ -83,6 +84,7 @@ public class SearchActivity extends Activity {
 				} else if (contacts.size() == 1) {
 					// send data to next activity
 					intent.putExtra("room", contacts.get(0).getRoomNumber().get(0));
+					DataModel.getInstance().setDestinationText(contacts.get(0).getCommonName());
 					setResult(RESULT_OK, intent);
 					finish();
 				} else {
@@ -118,6 +120,7 @@ public class SearchActivity extends Activity {
 
 							System.out.println(position);
 							intent.putExtra("room", contacts.get(position).getRoomNumber().get(0));
+							DataModel.getInstance().setDestinationText(contacts.get(position).getCommonName());
 							setResult(RESULT_OK, intent);
 							finish();
 						}

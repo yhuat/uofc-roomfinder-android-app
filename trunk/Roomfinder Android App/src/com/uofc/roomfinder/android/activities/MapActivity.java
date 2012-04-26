@@ -1,5 +1,9 @@
 package com.uofc.roomfinder.android.activities;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -22,6 +26,7 @@ import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.tasks.RoomQuery;
+import com.uofc.roomfinder.util.UrlReader;
 
 public class MapActivity extends Activity {
 
@@ -79,7 +84,12 @@ public class MapActivity extends Activity {
 		// mapView.getMapBoundaryExtent().getYMin() +","+mapView.getMapBoundaryExtent().getXMin());
 
 		// location listener
-		DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126));
+		//DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126)); //somewhere in MS
+	    //DataModel.getInstance().setCurrentPositionNAD83(new Point(701192.8861, 5662659.7696)); //franks office
+	    DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.130147, 51.080267)); //franks office
+	    
+		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX() + ", " + DataModel.getInstance().getCurrentPositionNAD83().getY());
+
 		System.out.println(DataModel.getInstance().getCurrentPositionWGS84().getX());
 		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX());
 
@@ -104,7 +114,22 @@ public class MapActivity extends Activity {
 			public void onClick(View v) {
 				Intent i = new Intent();
 				i.setAction(Intent.ACTION_VIEW);
-				i.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
+
+				DataModel m = DataModel.getInstance();
+
+				if (m.getDestinationPoint() == null) {
+					i.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
+				} else {
+					String uri = m.getDestinationAsWgs84().getJsonUrl() + m.getDestinationText();
+					System.out.println(uri);
+					try {
+						System.out.println(Uri.parse(UrlReader.stringToUri(uri).toString()));
+						i.setDataAndType(Uri.parse(UrlReader.stringToUri(uri).toString()), "application/mixare-json");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+
 				startActivity(i);
 			}
 		});
@@ -125,7 +150,7 @@ public class MapActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentWaypoint());
-				//todo: if it can be decreased
+				// todo: if it can be decreased
 				DataModel.getInstance().getRoute().decreaseCurrentWaypoint();
 			}
 		});
@@ -250,6 +275,14 @@ public class MapActivity extends Activity {
 	public void setMapView(MapView mapView) {
 		this.mapView = mapView;
 	}
+
+	public ImageButton getBtnPlus() {
+		return btnPlus;
+	}
+
+	public ImageButton getBtnMinus() {
+		return btnMinus;
+	}
 	
-	
+
 }
