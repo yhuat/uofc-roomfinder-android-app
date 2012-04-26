@@ -7,7 +7,7 @@
     <com.esri.android.map.MapView
         android:id="@+id/map"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"/>
+        android:layout_height="fill_parent" />
 
     <LinearLayout
         android:id="@+id/layout_txt"
@@ -28,6 +28,37 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/layout_plusminus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/map"
+        android:layout_alignTop="@id/map"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="32dp"
+        android:orientation="horizontal" >
+
+        <ImageButton
+            android:id="@+id/btn_minus"
+            android:visibility="invisible"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/minus"
+            android:contentDescription="@string/map_btn_text" />
+
+        <ImageButton
+            android:id="@+id/btn_plus"
+            android:visibility="invisible"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/plus"
+            android:contentDescription="@string/map_btn_text" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/map"
@@ -37,24 +68,6 @@
         android:orientation="horizontal" >
 
         <ImageButton
-            android:id="@+id/btn_minus"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginRight="6dp"
-            android:background="@drawable/minus"
-            android:contentDescription="@string/map_btn_text" />
-        
-        <ImageButton
-            android:id="@+id/btn_plus"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginRight="6dp"
-            android:background="@drawable/plus"
-            android:contentDescription="@string/map_btn_text" />
-        
-        <ImageButton
             android:id="@+id/btn_search"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -62,18 +75,15 @@
             android:layout_marginRight="6dp"
             android:background="@drawable/search"
             android:contentDescription="@string/map_btn_text" />
-        
-         <ImageButton
+
+        <ImageButton
             android:id="@+id/btn_ar"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_marginBottom="6dp"
             android:layout_marginRight="6dp"
-            android:background="@drawable/search"
+            android:background="@drawable/cam"
             android:contentDescription="@string/map_btn_text" />
-        
-        
-         
     </LinearLayout>
 
 </RelativeLayout>
