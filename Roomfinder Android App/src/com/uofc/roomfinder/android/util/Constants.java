@@ -17,6 +17,7 @@ public class Constants {
 	
 	public final static String QUERY_COL_RM_ID = "SDE.DBO.Building_Room.RM_ID";
 	public final static String QUERY_COL_BLD_ID = "SDE.DBO.Building_Room.BLD_ID";
+	public final static String QUERY_COL_FLR_ID = "SDE.DBO.Building_Room.FLR_ID";	
 	
 	public final static String ROUTING_IMPEDANCE_SHORTEST_PATH = "Length";
 	public final static String ROUTING_IMPEDANCE_AVOID_OUTDOOR = "OutdoorCost";

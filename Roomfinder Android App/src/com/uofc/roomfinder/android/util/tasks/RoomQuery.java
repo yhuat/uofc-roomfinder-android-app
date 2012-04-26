@@ -9,6 +9,7 @@ import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
 import java.lang.reflect.Method;
 
 import android.os.AsyncTask;
+import android.view.View;
 import android.widget.Toast;
 
 import com.esri.core.geometry.Envelope;
@@ -24,6 +25,7 @@ import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
+import com.uofc.roomfinder.util.Constants;
 
 public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 
@@ -65,10 +67,14 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 		// set loading screen
 		// this.mapActivity.setProgressDialog(ProgressDialog.show(this.mapActivity, "", "Please wait....query task is executing"));
 
-		SpatialReference sr = SpatialReference.create(SPARTIAL_REF_NAD83);
+		// set output fields for result
+		String[] outputFields = { com.uofc.roomfinder.android.util.Constants.QUERY_COL_FLR_ID };
+
 		Query query = new Query();
 		query.setGeometry(new Envelope(MIN_X_QUERY_COORDINATE, MIN_Y_QUERY_COORDINATE, MAX_X_QUERY_COORDINATE, MAX_Y_QUERY_COORDINATE));
-		query.setOutSpatialReference(sr);
+		query.setOutSpatialReference(SpatialReference.create(SPARTIAL_REF_NAD83));
+		query.setOutFields(outputFields);
+		query.setReturnIdsOnly(false);
 		query.setReturnGeometry(true);
 		query.setWhere(whereClause);
 
@@ -100,11 +106,13 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 			e.printStackTrace();
 		}
 
-		System.out.println(result);
-		System.out.println(result.getGraphics().length);
+		//System.out.println(result);
+		//System.out.println(result.getGraphics().length);
 
 		// if there is an result
 		if (result != null && result.getGraphics() != null && result.getGraphics().length > 0) {
+
+			Route route = null;
 
 			// remove graphics from graphicslayer
 			mapActivity.getGraphicsLayer().removeAll();
@@ -117,20 +125,33 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 			// Route route = new Route(this.mapActivity.getCurrentPosition(), new RoutePoint(centerPoint.getX(), centerPoint.getY()));
 			Point startPoint = DataModel.getInstance().getCurrentPositionNAD83();
 			Point endPoint = CoordinateUtil.getCenterCoordinateOfGeometry(grs[0].getGeometry());
-			System.out.println(startPoint.getX() + " - " + startPoint.getY());
-			System.out.println(endPoint.getX() + " - " + endPoint.getY());
 
-			Route route = null;
+			// get floor out of result feature set
+			String floorResult = (String) result.getGraphics()[0].getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_COL_FLR_ID);
 
+			// build destination point for route
+			RoutePoint routeEnd = new RoutePoint(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
+
+			System.out.println(routeEnd.getX() + ", " + routeEnd.getY());
+			
 			// if there is an impedance attribute pay attention to it...
 			if (impedanceAttribute != null)
-				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()), impedanceAttribute);
+				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), routeEnd, impedanceAttribute);
 			else
-				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), new RoutePoint(endPoint.getX(), endPoint.getY()));
+				route = new Route(new RoutePoint(startPoint.getX(), startPoint.getY()), routeEnd);
 
+			//set destination to data model
+			DataModel.getInstance().setDestinationPoint(routeEnd);
 			
+			// System.out.println(startPoint.getX() + " - " + startPoint.getY());
+			// System.out.println(endPoint.getX() + " - " + endPoint.getY());
+			// System.out.println("result: " + result.getGraphics()[0].getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_COL_FLR_ID) );
+			// System.out.println("result: " + result);
+
 			DataModel.getInstance().setRoute(route);
-			
+			DataModel.getInstance().getMap().getBtnMinus().setVisibility(View.VISIBLE);
+			DataModel.getInstance().getMap().getBtnPlus().setVisibility(View.VISIBLE);
+
 			// display route
 			if (route.getPath().size() > 1) {
 				MapDrawer.displayRoute(route);
