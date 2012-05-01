@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_main"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
@@ -37,6 +38,14 @@
         android:layout_marginBottom="32dp"
         android:orientation="horizontal" >
 
+        <com.uofc.roomfinder.android.views.MapNavBarView
+            android:id="@+id/nav_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginBottom="6dp"
+            android:layout_marginRight="6dp"
+            />
+        
         <ImageButton
             android:id="@+id/btn_minus"
             android:visibility="invisible"
