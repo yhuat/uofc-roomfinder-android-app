@@ -18,7 +18,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
-import com.esri.arcgis.android.samples.attributequery.R;
+
+import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.entities.Contact;
@@ -26,7 +27,7 @@ import com.uofc.roomfinder.entities.ContactList;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class SearchActivity extends Activity {
-
+	
 	EditText inputSearch;
 	ListView listView;
 	Spinner spinnerImpedance;

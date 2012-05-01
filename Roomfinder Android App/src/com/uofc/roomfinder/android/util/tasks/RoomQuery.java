@@ -25,7 +25,6 @@ import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
-import com.uofc.roomfinder.util.Constants;
 
 public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 
@@ -114,7 +113,7 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 
 			Route route = null;
 
-			// remove graphics from graphicslayer
+			// remove graphics from graphics layer
 			mapActivity.getGraphicsLayer().removeAll();
 
 			// display graphic
@@ -143,6 +142,9 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 			//set destination to data model
 			DataModel.getInstance().setDestinationPoint(routeEnd);
 			
+			// update nav bar
+			DataModel.getInstance().setRoute(route);
+			
 			// System.out.println(startPoint.getX() + " - " + startPoint.getY());
 			// System.out.println(endPoint.getX() + " - " + endPoint.getY());
 			// System.out.println("result: " + result.getGraphics()[0].getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_COL_FLR_ID) );
@@ -154,7 +156,13 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 
 			// display route
 			if (route.getPath().size() > 1) {
-				MapDrawer.displayRoute(route);
+				try {
+					MapDrawer.displayRoute(route);
+				} catch (Exception e) {
+					Toast toast = Toast.makeText(this.mapActivity, "error 101: cannot display route", Toast.LENGTH_LONG);
+					toast.show();
+					e.printStackTrace();
+				}
 			} else {
 				Toast toast = Toast.makeText(this.mapActivity, "no route could be found", Toast.LENGTH_LONG);
 				toast.show();

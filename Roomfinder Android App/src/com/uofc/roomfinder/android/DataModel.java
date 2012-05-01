@@ -12,6 +12,7 @@ import com.esri.core.geometry.SpatialReference;
 
 import com.uofc.roomfinder.android.activities.MapActivity;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
+import com.uofc.roomfinder.android.util.RouteUtil;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 
@@ -91,6 +92,17 @@ public class DataModel {
 
 	public void setRoute(Route route) {
 		this.route = route;
+		
+		System.out.println(RouteUtil.analyzeRoute(route));
+		
+		//paint navigation bar
+		if (route.getRouteSegments() == null){
+			if (RouteUtil.analyzeRoute(route)){
+				return;				
+			}
+		}	
+		
+		this.map.getMapNavBar().createNavigationBar(route.getRouteSegments());
 	}
 
 	public RoutePoint getDestinationPoint() {

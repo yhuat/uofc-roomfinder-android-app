@@ -1,44 +1,47 @@
 package com.uofc.roomfinder.android.activities;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
-import com.esri.arcgis.android.samples.attributequery.R;
 import com.esri.core.geometry.Point;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
+import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.tasks.RoomQuery;
+import com.uofc.roomfinder.android.views.MapNavBarView;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class MapActivity extends Activity {
 
 	private final static int SEARCH_CODE = 1;
 
-	MapView mapView;
 	GraphicsLayer graphicsLayer;
 	ImageButton btnSearchForm;
 	ImageButton btnArView;
 	ImageButton btnPlus;
 	ImageButton btnMinus;
 	ProgressDialog progressDialog;
+
+	// views and layouts
+	MapNavBarView mapNavBar; // map navigation bar
+	MapView mapView;
 	TextView txtStatusBar;
 
 	boolean actualizing = true;
@@ -46,7 +49,7 @@ public class MapActivity extends Activity {
 	// Activity methods
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		System.out.println("onCreate");
+
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.map_activity_layout);
 		mapView = (MapView) findViewById(R.id.map);
@@ -84,10 +87,10 @@ public class MapActivity extends Activity {
 		// mapView.getMapBoundaryExtent().getYMin() +","+mapView.getMapBoundaryExtent().getXMin());
 
 		// location listener
-		//DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126)); //somewhere in MS
-	    //DataModel.getInstance().setCurrentPositionNAD83(new Point(701192.8861, 5662659.7696)); //franks office
-	    DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.130147, 51.080267)); //franks office
-	    
+		// DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126)); //somewhere in MS
+		// DataModel.getInstance().setCurrentPositionNAD83(new Point(701192.8861, 5662659.7696)); //franks office
+		DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.130147, 51.080267)); // franks office
+
 		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX() + ", " + DataModel.getInstance().getCurrentPositionNAD83().getY());
 
 		System.out.println(DataModel.getInstance().getCurrentPositionWGS84().getX());
@@ -139,8 +142,14 @@ public class MapActivity extends Activity {
 		btnPlus.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentWaypoint());
-				DataModel.getInstance().getRoute().increaseCurrentWaypoint();
+				try {
+					MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentSegment());
+				} catch (Exception e) {
+					Toast toast = Toast.makeText(DataModel.getInstance().getMap(), "error 101: cannot display route", Toast.LENGTH_LONG);
+					toast.show();
+					e.printStackTrace();
+				}
+				DataModel.getInstance().getRoute().increaseCurrentCurrentSegment();
 			}
 		});
 
@@ -149,11 +158,20 @@ public class MapActivity extends Activity {
 		btnMinus.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentWaypoint());
-				// todo: if it can be decreased
-				DataModel.getInstance().getRoute().decreaseCurrentWaypoint();
+				try {
+					MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentSegment());
+				} catch (Exception e) {
+					Toast toast = Toast.makeText(DataModel.getInstance().getMap(), "error 101: cannot display route", Toast.LENGTH_LONG);
+					toast.show();
+					e.printStackTrace();
+				}
+				DataModel.getInstance().getRoute().decreaseCurrentCurrentSegment();
 			}
 		});
+
+		// map nav bar
+		mapNavBar = (MapNavBarView) findViewById(R.id.nav_bar);
+		System.out.println("navbar: " + mapNavBar);
 
 		/*
 		 * mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
@@ -283,6 +301,62 @@ public class MapActivity extends Activity {
 	public ImageButton getBtnMinus() {
 		return btnMinus;
 	}
+
+	public MapNavBarView getMapNavBar() {
+		return mapNavBar;
+	}
 	
+	/**
+	 * this method returns the y offset of the map view (the height of the android bar + app title text)
+	 * @return
+	 */
+	public int getMapviewOffsetY() {
+	    int mOffset[] = new int[2];
+	    this.mapView.getLocationOnScreen( mOffset );
+	    return mOffset[1]; 
+	  }
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+	    
+		//touch coordinates relative to the map view
+		int touchX = (int) event.getX();
+	    int touchY = (int) event.getY() - getMapviewOffsetY();
+	    
+	    int eventaction = event.getAction();
+	    
+	    switch (eventaction) {
+	        case MotionEvent.ACTION_DOWN: 
+	        	System.out.println("action down");
+	            break;
+
+	        case MotionEvent.ACTION_MOVE:
+	        	System.out.println("action move");
+	            break;
+
+	        case MotionEvent.ACTION_UP:
+	        	System.out.println("action up");
+	        	
+	        	//check if touch hit a nav bar rectangle
+	        	int i=0;
+	        	for(Rect rect : mapNavBar.getNavbarParts()){
+	                if(rect.contains(touchX,touchY)){
+	                    System.out.println("Touched Rectangle, start activity. " + i);
+	                    try {
+							MapDrawer.displayRouteSegmentOfWaypoint(i);
+							mapNavBar.setActiveElement(i);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+	                }
+	                i++;
+	            }
+	        	
+	            break;
+	    }
+
+	    // tell the system that we handled the event and no further processing is required
+	    return true; 
+	}
 
 }
