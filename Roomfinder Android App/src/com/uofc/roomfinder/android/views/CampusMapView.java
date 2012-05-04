@@ -8,6 +8,12 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.android.map.ags.ArcGISLayerInfo;
+import com.esri.core.geometry.Envelope;
+import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.LinearUnit;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
+import com.esri.core.geometry.Unit;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.uofc.roomfinder.android.util.Constants;
@@ -22,35 +28,37 @@ import com.uofc.roomfinder.util.Util;
  */
 public class CampusMapView extends MapView {
 
+	private static final int BUILDING_LAYER_INDEX = 0;
+
 	GraphicsLayer graphicsLayer;
 	ArcGISDynamicMapServiceLayer roomLayer;
+	ArcGISDynamicMapServiceLayer buildingLayer;
 	private String activeFloor;
 
 	// constructors
 	public CampusMapView(Context context) {
 		super(context);
-		this.init();
+		init();
 	}
 
 	public CampusMapView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		this.init();
+		init();
 	}
 
 	public CampusMapView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		this.init();
+		init();
 	}
 
 	// methods
 	public void init() {
 		System.out.println("campus map init startet");
-		// WTF?????? without this layer no layer is displayed, I have no Idea why!
-		// simple workaround: add it and set the visibility to false...
-		ArcGISDynamicMapServiceLayer beastLayer = new ArcGISDynamicMapServiceLayer(
-				"http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer");
-		beastLayer.setVisible(false);
-		this.addLayer(beastLayer);
+		/*
+		 * // WTF?????? without this layer no layer is displayed, I have no Idea why! // simple workaround: add it and set the visibility to false...
+		 * ArcGISDynamicMapServiceLayer beastLayer = new ArcGISDynamicMapServiceLayer(
+		 * "http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer"); beastLayer.setVisible(false); //this.addLayer(beastLayer);
+		 */
 
 		// layer for rooms
 		this.roomLayer = new ArcGISDynamicMapServiceLayer("http://136.159.24.32/ArcGIS/rest/services/Rooms/Rooms/MapServer");
@@ -58,9 +66,9 @@ public class CampusMapView extends MapView {
 		this.addLayer(this.roomLayer);
 
 		// add layer for buildings
-		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
-		buildingLayer.setOpacity(0.4f);
-		this.addLayer(buildingLayer);
+		this.buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
+		this.buildingLayer.setOpacity(0.4f);
+		this.addLayer(this.buildingLayer);
 
 		this.setMaxResolution(10000.0);
 
@@ -70,8 +78,13 @@ public class CampusMapView extends MapView {
 		graphicsLayer.setRenderer(sr);
 		this.addLayer(graphicsLayer);
 
+		// initial extent
+		Envelope initialExtent = new Envelope(700943.040902211, 5662584.8982894, 701206.536124156, 5662724.644069);
+		this.setExtent(initialExtent); // } }
+
 		// wait until map is initialized
-		while (!this.getLayer(1).isInitialized()) {
+		while (!this.buildingLayer.isInitialized()) {
+
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -89,7 +102,7 @@ public class CampusMapView extends MapView {
 	 */
 	private void displayLayer(String floor) {
 		// Query dynamic map service layer
-		ArcGISDynamicMapServiceLayer dynamicLayer = (ArcGISDynamicMapServiceLayer) this.getLayer(1);
+		ArcGISDynamicMapServiceLayer dynamicLayer = (ArcGISDynamicMapServiceLayer) this.getLayer(BUILDING_LAYER_INDEX);
 
 		// Retrieve layer info for each sub-layer of the dynamic map service layer.
 		ArcGISLayerInfo[] layerinfos = dynamicLayer.getLayers();
