@@ -11,6 +11,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.widget.TextView;
+
+import com.esri.android.map.Layer;
 import com.esri.core.geometry.Point;
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
@@ -44,7 +46,7 @@ public class MapActivity extends Activity {
 		// set loading screen
 		// this.progressDialog = ProgressDialog.show(this, "", "Please wait....initializing maps.");
 		mapView = (CampusMapView) findViewById(R.id.map);
-		mapView.init();
+		//mapView.init();
 		DataModel.getInstance().setMap(this);
 
 		// System.out.println(mapView.getMapBoundaryExtent().getYMax() +", "+ mapView.getMapBoundaryExtent().getXMax() + " - " +
@@ -185,6 +187,12 @@ public class MapActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 
+		int j = 0;
+		for (Layer layer : this.mapView.getLayers()){
+			System.out.println(j++ + " - " + layer.isVisible() + " - " + layer.getName() + " - " + layer.getUrl());
+		}
+		
+		
 		// touch coordinates relative to the map view
 		int touchX = (int) event.getX();
 		int touchY = (int) event.getY() - getMapviewOffsetY();
