@@ -9,13 +9,10 @@ import com.esri.core.geometry.Polyline;
 import com.esri.core.geometry.Segment;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleLineSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
 import com.esri.core.symbol.Symbol;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.RouteUtil;
 import com.uofc.roomfinder.entities.routing.Route;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
 public class MapDrawer {
@@ -28,9 +25,11 @@ public class MapDrawer {
 	 * @param segmentIndex index of the route segment
 	 * @throws Exception 
 	 */
-	public static void displayRouteSegmentOfWaypoint(int segmentIndex) throws Exception {
+	public static void displayRouteSegment(int segmentIndex) throws Exception {
+		System.out.println("route segments: " + DataModel.getInstance().getRoute().getRouteSegments());
+		
 		RouteSegment segment = DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex);
-		displayRouteSegmentOfWaypoint(segment);
+		displayRouteSegment(segment);
 	}
 	
 	/**
@@ -39,8 +38,8 @@ public class MapDrawer {
 	 * @param segment segment to display
 	 * @throws Exception
 	 */
-	public static void displayRouteSegmentOfWaypoint(RouteSegment segment) throws Exception {
-		displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), segment);
+	public static void displayRouteSegment(RouteSegment segment) throws Exception {
+		displayRouteSegment(DataModel.getInstance().getRoute(), segment);
 	}
 	
 	/**
@@ -50,7 +49,7 @@ public class MapDrawer {
 	 * @throws Exception
 	 * 
 	 */
-	public static void displayRouteSegmentOfWaypoint(Route route, RouteSegment segment) throws Exception {
+	public static void displayRouteSegment(Route route, RouteSegment segment) throws Exception {
 
 		System.out.println("segment in display method: " + segment);
 		
@@ -86,7 +85,7 @@ public class MapDrawer {
 	public static void displayRoute(Route route, int startPointOfPath, int endPointOfPath) throws Exception {
 
 		// remove everything from graphics layer
-		DataModel.getInstance().getMap().getGraphicsLayer().removeAll();
+		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().removeAll();
 
 		// get segments of path if not available
 		if (route.getRouteSegments().size() < 1) {
@@ -133,8 +132,11 @@ public class MapDrawer {
 				// add segment to polyLine
 				pLine.addSegment(segment, true);
 			}
+			//switch to according room layer
+			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(route.getPath().get(startPointOfPath).getZ());
+			
 			// add created line to graphics layer
-			DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(new Graphic(pLine, lineSymbol));
+			DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().addGraphic(new Graphic(pLine, lineSymbol));
 
 			// center route and zoom a bit out
 			Envelope env = new Envelope();
@@ -142,7 +144,7 @@ public class MapDrawer {
 
 			// create envelope which is a bit bigger than the route segment
 			Envelope newEnv = new Envelope(env.getCenter(), env.getWidth() * SEGMENT_ZOOM_FACTOR, env.getHeight() * SEGMENT_ZOOM_FACTOR);
-			DataModel.getInstance().getMap().getMapView().setExtent(newEnv);
+			DataModel.getInstance().getMapActivity().getMapView().setExtent(newEnv);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();

@@ -3,45 +3,33 @@ package com.uofc.roomfinder.android.activities;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.MapView;
-import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.core.geometry.Point;
-import com.esri.core.renderer.SimpleRenderer;
-import com.esri.core.symbol.SimpleFillSymbol;
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.Constants;
-import com.uofc.roomfinder.android.util.tasks.RoomQuery;
-import com.uofc.roomfinder.android.views.MapNavBarView;
+import com.uofc.roomfinder.android.util.GisServerUtil;
+import com.uofc.roomfinder.android.views.CampusMapView;
+import com.uofc.roomfinder.android.views.RouteNavigationBar;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class MapActivity extends Activity {
 
 	private final static int SEARCH_CODE = 1;
 
-	GraphicsLayer graphicsLayer;
-	ImageButton btnSearchForm;
-	ImageButton btnArView;
-	ImageButton btnPlus;
-	ImageButton btnMinus;
 	ProgressDialog progressDialog;
 
 	// views and layouts
-	MapNavBarView mapNavBar; // map navigation bar
-	MapView mapView;
+	RouteNavigationBar mapNavBar; // map navigation bar
+	CampusMapView mapView;
 	TextView txtStatusBar;
 
 	boolean actualizing = true;
@@ -51,37 +39,13 @@ public class MapActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.map_activity_layout);
-		mapView = (MapView) findViewById(R.id.map);
+		setContentView(R.layout.map_activity);
+
+		// set loading screen
+		// this.progressDialog = ProgressDialog.show(this, "", "Please wait....initializing maps.");
+		mapView = (CampusMapView) findViewById(R.id.map);
+		mapView.init();
 		DataModel.getInstance().setMap(this);
-
-		// WTF?????? without this layer no layer is displayed, I have no Idea why!
-		// simple workaround: add it and set the visibility to false...
-		ArcGISDynamicMapServiceLayer beastLayer = new ArcGISDynamicMapServiceLayer(
-				"http://asebeast2.cpsc.ucalgary.ca:7000/ArcGIS/rest/services/RoomFinder/MapServer");
-		beastLayer.setVisible(false);
-		mapView.addLayer(beastLayer);
-
-		// layer for rooms
-		ArcGISDynamicMapServiceLayer roomLayer = new ArcGISDynamicMapServiceLayer("http://136.159.24.32/ArcGIS/rest/services/Rooms/Rooms/MapServer");
-		roomLayer.setVisible(true);
-		mapView.addLayer(roomLayer);
-
-		// add layer for buildings
-		ArcGISDynamicMapServiceLayer buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
-		buildingLayer.setOpacity(0.4f);
-		mapView.addLayer(buildingLayer);
-
-		// graphics layer for routes and POIs
-		graphicsLayer = new GraphicsLayer();
-		SimpleRenderer sr = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
-		graphicsLayer.setRenderer(sr);
-		mapView.addLayer(graphicsLayer);
-
-		mapView.setMaxResolution(10000.0);
-
-		System.out.println(mapView.getMaxResolution());
-		System.out.println(mapView.getMinResolution());
 
 		// System.out.println(mapView.getMapBoundaryExtent().getYMax() +", "+ mapView.getMapBoundaryExtent().getXMax() + " - " +
 		// mapView.getMapBoundaryExtent().getYMin() +","+mapView.getMapBoundaryExtent().getXMin());
@@ -99,79 +63,24 @@ public class MapActivity extends Activity {
 		// textBTN
 		txtStatusBar = (TextView) findViewById(R.id.txt_status);
 
-		// button for search form
-		btnSearchForm = (ImageButton) findViewById(R.id.btn_search);
-		btnSearchForm.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				// switch to search form screen
-				Intent nextScreen = new Intent(getApplicationContext(), SearchActivity.class);
-				startActivityForResult(nextScreen, SEARCH_CODE); // start only for result
-			}
-		});
+		// create an instance of map nav bar
+		mapNavBar = (RouteNavigationBar) findViewById(R.id.nav_bar);
 
-		// button for AR view
-		btnArView = (ImageButton) findViewById(R.id.btn_ar);
-		btnArView.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent i = new Intent();
-				i.setAction(Intent.ACTION_VIEW);
+		// if a destination building is set in the intent data -> create a route to get there
+		Intent intent = getIntent();
+		if (intent.getStringExtra("room") != null) {
 
-				DataModel m = DataModel.getInstance();
+			// split in room and building
+			// received data should look like ICT550
+			String receivedData = intent.getStringExtra("room");
+			String regex = "(?<=[\\w&&\\D])(?=\\d)";
+			String building = receivedData.split(regex)[0];
+			String room = receivedData.split(regex)[1];
+			String impedance = intent.getStringExtra("impedance");
 
-				if (m.getDestinationPoint() == null) {
-					i.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
-				} else {
-					String uri = m.getDestinationAsWgs84().getJsonUrl() + m.getDestinationText();
-					System.out.println(uri);
-					try {
-						System.out.println(Uri.parse(UrlReader.stringToUri(uri).toString()));
-						i.setDataAndType(Uri.parse(UrlReader.stringToUri(uri).toString()), "application/mixare-json");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-
-				startActivity(i);
-			}
-		});
-
-		// button plus
-		btnPlus = (ImageButton) findViewById(R.id.btn_plus);
-		btnPlus.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				try {
-					MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentSegment());
-				} catch (Exception e) {
-					Toast toast = Toast.makeText(DataModel.getInstance().getMap(), "error 101: cannot display route", Toast.LENGTH_LONG);
-					toast.show();
-					e.printStackTrace();
-				}
-				DataModel.getInstance().getRoute().increaseCurrentCurrentSegment();
-			}
-		});
-
-		// button minus
-		btnMinus = (ImageButton) findViewById(R.id.btn_minus);
-		btnMinus.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				try {
-					MapDrawer.displayRouteSegmentOfWaypoint(DataModel.getInstance().getRoute(), DataModel.getInstance().getRoute().getCurrentSegment());
-				} catch (Exception e) {
-					Toast toast = Toast.makeText(DataModel.getInstance().getMap(), "error 101: cannot display route", Toast.LENGTH_LONG);
-					toast.show();
-					e.printStackTrace();
-				}
-				DataModel.getInstance().getRoute().decreaseCurrentCurrentSegment();
-			}
-		});
-
-		// map nav bar
-		mapNavBar = (MapNavBarView) findViewById(R.id.nav_bar);
-		System.out.println("navbar: " + mapNavBar);
+			// start async task
+			GisServerUtil.startRouteQuery(building, room, impedance);
+		}
 
 		/*
 		 * mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
@@ -226,6 +135,7 @@ public class MapActivity extends Activity {
 		 * 
 		 * } } });
 		 */
+		// this.progressDialog.dismiss();
 	}
 
 	@Override
@@ -239,6 +149,121 @@ public class MapActivity extends Activity {
 		super.onResume();
 		mapView.unpause();
 		System.out.println("onResume");
+	}
+
+	// getter & setter
+	public ProgressDialog getProgressDialog() {
+		return progressDialog;
+	}
+
+	public void setProgressDialog(ProgressDialog progressDialog) {
+		this.progressDialog = progressDialog;
+	}
+
+	public CampusMapView getMapView() {
+		return mapView;
+	}
+
+	public RouteNavigationBar getMapNavBar() {
+		return mapNavBar;
+	}
+
+	/**
+	 * this method returns the y offset of the map view (the height of the android bar + app title text)
+	 * 
+	 * @return
+	 */
+	public int getMapviewOffsetY() {
+		int mOffset[] = new int[2];
+		this.mapView.getLocationOnScreen(mOffset);
+		return mOffset[1];
+	}
+
+	/**
+	 * handles touches on the display
+	 */
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+
+		// touch coordinates relative to the map view
+		int touchX = (int) event.getX();
+		int touchY = (int) event.getY() - getMapviewOffsetY();
+
+		int eventaction = event.getAction();
+
+		switch (eventaction) {
+		case MotionEvent.ACTION_DOWN:
+			System.out.println("action down");
+			break;
+
+		case MotionEvent.ACTION_MOVE:
+			System.out.println("action move");
+			break;
+
+		case MotionEvent.ACTION_UP:
+			System.out.println("action up");
+
+			// check if touch hit a nav bar rectangle
+			int i = 0;
+			for (Rect rect : mapNavBar.getNavbarParts()) {
+				if (rect.contains(touchX, touchY)) {
+					try {
+						MapDrawer.displayRouteSegment(i);
+						mapNavBar.setActiveElement(i);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				i++;
+			}
+
+			break;
+		}
+
+		// tell the system that we handled the event and no further processing is required
+		return true;
+	}
+
+	/**
+	 * creates option menu out of xml file
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.map_menu, menu);
+		return true;
+	}
+
+	/**
+	 * handles option menu inputs
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.item_route:
+			Intent nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			startActivityForResult(nextScreen, SEARCH_CODE);
+			break;
+
+		case R.id.item_ar:
+			Intent i = new Intent();
+			i.setAction(Intent.ACTION_VIEW);
+			DataModel m = DataModel.getInstance();
+
+			if (m.getDestinationPoint() == null) {
+				i.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
+			} else {
+				String uri = m.getDestinationAsWgs84().getJsonUrl() + m.getDestinationText();
+				try {
+					i.setDataAndType(Uri.parse(UrlReader.stringToUri(uri).toString()), "application/mixare-json");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			startActivity(i);
+			break;
+		}
+		return true;
 	}
 
 	@Override
@@ -258,105 +283,9 @@ public class MapActivity extends Activity {
 		String regex = "(?<=[\\w&&\\D])(?=\\d)";
 		String building = receivedData.split(regex)[0];
 		String room = receivedData.split(regex)[1];
-
 		String impedance = intent.getStringExtra("impedance");
 
-		Log.e("MapScreen", "searching room: " + room + " and building: " + building + "and impedance: " + impedance);
-
-		// set layer and build where clause for query
-		String targetLayer = Constants.MAPSERVER_ROOM_QUERY_URL;
-		String whereClause = Constants.QUERY_COL_RM_ID + "='" + room + "'" + " AND " + Constants.QUERY_COL_BLD_ID + "='" + building + "'";
-
-		// start query task
-		Object[] queryParams = { targetLayer, whereClause, this, impedance };
-		RoomQuery asyncQuery = new RoomQuery();
-		asyncQuery.execute(queryParams);
-	}
-
-	// getter & setter
-	public ProgressDialog getProgressDialog() {
-		return progressDialog;
-	}
-
-	public void setProgressDialog(ProgressDialog progressDialog) {
-		this.progressDialog = progressDialog;
-	}
-
-	public GraphicsLayer getGraphicsLayer() {
-		return graphicsLayer;
-	}
-
-	public MapView getMapView() {
-		return mapView;
-	}
-
-	public void setMapView(MapView mapView) {
-		this.mapView = mapView;
-	}
-
-	public ImageButton getBtnPlus() {
-		return btnPlus;
-	}
-
-	public ImageButton getBtnMinus() {
-		return btnMinus;
-	}
-
-	public MapNavBarView getMapNavBar() {
-		return mapNavBar;
-	}
-	
-	/**
-	 * this method returns the y offset of the map view (the height of the android bar + app title text)
-	 * @return
-	 */
-	public int getMapviewOffsetY() {
-	    int mOffset[] = new int[2];
-	    this.mapView.getLocationOnScreen( mOffset );
-	    return mOffset[1]; 
-	  }
-	
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-	    
-		//touch coordinates relative to the map view
-		int touchX = (int) event.getX();
-	    int touchY = (int) event.getY() - getMapviewOffsetY();
-	    
-	    int eventaction = event.getAction();
-	    
-	    switch (eventaction) {
-	        case MotionEvent.ACTION_DOWN: 
-	        	System.out.println("action down");
-	            break;
-
-	        case MotionEvent.ACTION_MOVE:
-	        	System.out.println("action move");
-	            break;
-
-	        case MotionEvent.ACTION_UP:
-	        	System.out.println("action up");
-	        	
-	        	//check if touch hit a nav bar rectangle
-	        	int i=0;
-	        	for(Rect rect : mapNavBar.getNavbarParts()){
-	                if(rect.contains(touchX,touchY)){
-	                    System.out.println("Touched Rectangle, start activity. " + i);
-	                    try {
-							MapDrawer.displayRouteSegmentOfWaypoint(i);
-							mapNavBar.setActiveElement(i);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-	                }
-	                i++;
-	            }
-	        	
-	            break;
-	    }
-
-	    // tell the system that we handled the event and no further processing is required
-	    return true; 
+		GisServerUtil.startRouteQuery(building, room, impedance);
 	}
 
 }

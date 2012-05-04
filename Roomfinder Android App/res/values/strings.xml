@@ -20,6 +20,7 @@
     <string name="search_head">Search Form</string>
     <string name="search_input_field">What are you searching for?</string>
     <string name="search_under_input_field">You can search for rooms and staff (e.g. \'Frank Maurer\' or \'ICT 550\')</string>
+    <string name="search_results">Search results</string>
     
     <string name="search_btn_search">Search</string>
     <string name="search_spinner_text">select building</string>

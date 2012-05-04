@@ -12,7 +12,6 @@ import com.esri.core.geometry.SpatialReference;
 
 import com.uofc.roomfinder.android.activities.MapActivity;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
-import com.uofc.roomfinder.android.util.RouteUtil;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 
@@ -28,7 +27,7 @@ public class DataModel {
 
 	int currentSegmentStart; // the current waypoint of the displayed route to start with
 
-	MapActivity map;
+	MapActivity mapActivity;
 	Route route;
 
 	RoutePoint destinationPoint;
@@ -78,31 +77,20 @@ public class DataModel {
 		currentSegmentStart++;
 	}
 
-	public MapActivity getMap() {
-		return map;
+	public MapActivity getMapActivity() {
+		return mapActivity;
 	}
 
 	public void setMap(MapActivity map) {
-		this.map = map;
+		this.mapActivity = map;
 	}
 
 	public Route getRoute() {
 		return route;
 	}
 
-	public void setRoute(Route route) {
+	public void setRoute(Route route) throws Exception {
 		this.route = route;
-		
-		System.out.println(RouteUtil.analyzeRoute(route));
-		
-		//paint navigation bar
-		if (route.getRouteSegments() == null){
-			if (RouteUtil.analyzeRoute(route)){
-				return;				
-			}
-		}	
-		
-		this.map.getMapNavBar().createNavigationBar(route.getRouteSegments());
 	}
 
 	public RoutePoint getDestinationPoint() {
