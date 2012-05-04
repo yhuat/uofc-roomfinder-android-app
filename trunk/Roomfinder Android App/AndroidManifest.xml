@@ -1,62 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.uofc.roomfinder"
-      android:versionCode="1"
-      android:versionName="1.0">
+    package="com.uofc.roomfinder"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
     <uses-sdk android:minSdkVersion="8" />
 
-	<uses-feature android:required="false" android:name="android.hardware.camera.autofocus"></uses-feature>
-	<uses-feature android:required="false" android:name="android.hardware.camera.flash"></uses-feature>
-	<uses-feature android:required="false" android:name="android.hardware.camera.front"></uses-feature>
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" >
+    </uses-feature>
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" >
+    </uses-feature>
+    <uses-feature
+        android:name="android.hardware.camera.front"
+        android:required="false" >
+    </uses-feature>
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
+    <uses-permission android:name="android.permission.WAKE_LOCK" >
+    </uses-permission>
 
     <application
         android:debuggable="true"
         android:icon="@drawable/icon"
-        android:label="@string/app_name" >        
-        
-        <activity
-            android:name="com.uofc.roomfinder.android.activities.MapActivity"
-            android:configChanges="orientation"
-            android:label="@string/app_name" >
+        android:label="@string/app_name" >
+        <activity android:name=".android.activities.MainMenu"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".android.activities.SearchResultList" >
+        </activity>
         <activity
-            android:name="com.uofc.roomfinder.android.activities.SearchActivity"
+            android:name="com.uofc.roomfinder.android.activities.MapActivity"
+            android:configChanges="orientation"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name=".android.activities.SearchForm"
             android:windowSoftInputMode="stateAlwaysVisible" >
         </activity>
-        
-        <activity android:label="@string/app_name" android:name="org.mixare.MixView" 
-        android:screenOrientation="landscape"  
-        android:launchMode="singleTop" >
-        
+        <activity android:name=".android.activities.SearchResultList" >
+        </activity>
+        <activity
+            android:name="org.mixare.MixView"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter> 
-            
-            <intent-filter>  
-                  <action android:name="android.intent.action.VIEW" />
-				  <category android:name="android.intent.category.DEFAULT" />
-				  <category android:name="android.intent.category.BROWSABLE" />
-				  <data android:scheme="http" android:mimeType="application/mixare-json"/>
-				  <data android:scheme="content" android:mimeType="application/mixare-json"/>
-				  <data android:scheme="file" android:mimeType="application/mixare-json"/>
             </intent-filter>
-            
             <intent-filter>
-        	    <action android:name="android.intent.action.SEARCH"/>
-        	</intent-filter>
-        	
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:mimeType="application/mixare-json"
+                    android:scheme="http" />
+                <data
+                    android:mimeType="application/mixare-json"
+                    android:scheme="content" />
+                <data
+                    android:mimeType="application/mixare-json"
+                    android:scheme="file" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
         </activity>
-        
     </application>
+
 </manifest>
