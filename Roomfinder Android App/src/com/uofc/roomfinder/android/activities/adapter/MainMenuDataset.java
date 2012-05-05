@@ -4,23 +4,23 @@ package com.uofc.roomfinder.android.activities.adapter;
  * represents the data of one list element in the main menu
  * 
  * @author benjaminlautenschlaeger
- *
+ * 
  */
 public class MainMenuDataset {
 
-	protected int mId;
-	protected String mTitle;
-	protected String mDetail;
+	protected int imageId;
+	protected String title;
+	protected String detail;
 
 	public MainMenuDataset(int id, String title, String detail) {
-		mId = id;
-		mTitle = title;
-		mDetail = detail;
+		this.imageId = id;
+		this.title = title;
+		this.detail = detail;
 	}
 
 	@Override
 	public String toString() {
-		return mId + " " + mTitle + " " + mDetail;
+		return imageId + " " + title + " " + detail;
 	}
 
 }

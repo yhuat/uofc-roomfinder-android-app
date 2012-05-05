@@ -11,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.esri.android.map.Layer;
 import com.esri.core.geometry.Point;
@@ -24,8 +25,6 @@ import com.uofc.roomfinder.android.views.RouteNavigationBar;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class MapActivity extends Activity {
-
-	private final static int SEARCH_CODE = 1;
 
 	ProgressDialog progressDialog;
 
@@ -41,12 +40,13 @@ public class MapActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+		System.out.println("mapActivity onCreate");
 		setContentView(R.layout.map_activity);
 
 		// set loading screen
 		// this.progressDialog = ProgressDialog.show(this, "", "Please wait....initializing maps.");
 		mapView = (CampusMapView) findViewById(R.id.map);
-		//mapView.init();
+		// mapView.init();
 		DataModel.getInstance().setMap(this);
 
 		// System.out.println(mapView.getMapBoundaryExtent().getYMax() +", "+ mapView.getMapBoundaryExtent().getXMax() + " - " +
@@ -81,7 +81,7 @@ public class MapActivity extends Activity {
 			String impedance = intent.getStringExtra("impedance");
 
 			// start async task
-			GisServerUtil.startRouteQuery(building, room, impedance);
+			GisServerUtil.startRoomWithRouteQuery(building, room, impedance);
 		}
 
 		/*
@@ -188,11 +188,10 @@ public class MapActivity extends Activity {
 	public boolean onTouchEvent(MotionEvent event) {
 
 		int j = 0;
-		for (Layer layer : this.mapView.getLayers()){
+		for (Layer layer : this.mapView.getLayers()) {
 			System.out.println(j++ + " - " + layer.isVisible() + " - " + layer.getName() + " - " + layer.getUrl());
 		}
-		
-		
+
 		// touch coordinates relative to the map view
 		int touchX = (int) event.getX();
 		int touchY = (int) event.getY() - getMapviewOffsetY();
@@ -236,7 +235,7 @@ public class MapActivity extends Activity {
 	 * creates option menu out of xml file
 	 */
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu) {		
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.map_menu, menu);
 		return true;
@@ -247,28 +246,41 @@ public class MapActivity extends Activity {
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+
+		Intent nextScreen = null;
+
 		switch (item.getItemId()) {
 		case R.id.item_route:
-			Intent nextScreen = new Intent(getApplicationContext(), SearchForm.class);
-			startActivityForResult(nextScreen, SEARCH_CODE);
+			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			startActivityForResult(nextScreen, Constants.SEARCH_ROOM_WITH_ROUTE);
+			break;
+
+		case R.id.item_search_room:
+			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			startActivityForResult(nextScreen, Constants.SEARCH_ROOM);
+			break;
+
+		case R.id.item_quicklinks:
+			nextScreen = new Intent(getApplicationContext(), Quicklinks.class);
+			startActivityForResult(nextScreen, Constants.QUICKLINKS);
 			break;
 
 		case R.id.item_ar:
-			Intent i = new Intent();
-			i.setAction(Intent.ACTION_VIEW);
+			nextScreen = new Intent();
+			nextScreen.setAction(Intent.ACTION_VIEW);
 			DataModel m = DataModel.getInstance();
 
 			if (m.getDestinationPoint() == null) {
-				i.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
+				nextScreen.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
 			} else {
 				String uri = m.getDestinationAsWgs84().getJsonUrl() + m.getDestinationText();
 				try {
-					i.setDataAndType(Uri.parse(UrlReader.stringToUri(uri).toString()), "application/mixare-json");
+					nextScreen.setDataAndType(Uri.parse(UrlReader.stringToUri(uri).toString()), "application/mixare-json");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-			startActivity(i);
+			startActivity(nextScreen);
 			break;
 		}
 		return true;
@@ -278,22 +290,75 @@ public class MapActivity extends Activity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 
+		System.out.println("getting result");
+		
 		// Receiving the Data
 		Intent intent = data;
+
+		// regex for splitting building and room (e.g. ICT550 -> ICT, 550)
+		String regex = "(?<=[\\w&&\\D])(?=\\d)";
+
+		String building;
+		String room;
+		String impedance;
 
 		// if no data then return
 		if (data == null)
 			return;
 
-		// split in room and building
-		// received data should look like ICT550
-		String receivedData = intent.getStringExtra("room");
-		String regex = "(?<=[\\w&&\\D])(?=\\d)";
-		String building = receivedData.split(regex)[0];
-		String room = receivedData.split(regex)[1];
-		String impedance = intent.getStringExtra("impedance");
+		System.out.println("requestcode: " + requestCode + "resultcode: " + resultCode);
+		
+		switch (requestCode) {
+		case Constants.SEARCH_ROOM:
+			//exit condition
+			if(intent.getStringExtra("room").split(regex).length < 2){
+				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
+				return;
+			}
+			
+			// split in room and building
+			// received data should look like ICT550
+			building = intent.getStringExtra("room").split(regex)[0];
+			room = intent.getStringExtra("room").split(regex)[1];
+			GisServerUtil.startRoomQuery(building, room);
+			break;
 
-		GisServerUtil.startRouteQuery(building, room, impedance);
+		case Constants.SEARCH_ROOM_WITH_ROUTE:
+			//exit condition
+			if(intent.getStringExtra("room").split(regex).length < 2){
+				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
+				return;
+			}
+							
+			// split in room and building
+			// received data should look like ICT550 and should have the param impedance
+			building = intent.getStringExtra("room").split(regex)[0];
+			room = intent.getStringExtra("room").split(regex)[1];
+			impedance = intent.getStringExtra("impedance");
+			GisServerUtil.startRoomWithRouteQuery(building, room, impedance);
+			break;
+
+		case Constants.QUICKLINKS:
+
+			//exit condition
+			if(intent.getStringExtra("room").split(regex).length < 2){
+				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
+				return;
+			}
+							
+			// split in room and building
+			// received data should look like ICT550 and should have the param impedance
+			building = intent.getStringExtra("room").split(regex)[0];
+			room = intent.getStringExtra("room").split(regex)[1];
+			impedance = "Length";
+			GisServerUtil.startRoomWithRouteQuery(building, room, impedance);
+			break;
+
+		default:
+			break;
+		}
+		System.out.println("getting result end");
+
 	}
 
 }

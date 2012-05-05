@@ -12,9 +12,9 @@ import android.widget.TextView;
 
 import com.uofc.roomfinder.R;
 
-public class MainMenuListAdapter extends ArrayAdapter<MainMenuDataset> {
+public class QuicklinksListAdapter extends ArrayAdapter<QuicklinkDataset> {
 
-	public MainMenuListAdapter(Context context, int resource, int textViewResourceId, List<MainMenuDataset> objects) {
+	public QuicklinksListAdapter(Context context, int resource, int textViewResourceId, List<QuicklinkDataset> objects) {
 		super(context, resource, textViewResourceId, objects);
 
 	}
@@ -24,29 +24,28 @@ public class MainMenuListAdapter extends ArrayAdapter<MainMenuDataset> {
 		LayoutInflater inflater = (LayoutInflater) this.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		ViewHolder holder = null;
 		TextView title = null;
-		TextView detail = null;
 		ImageView i11 = null;
-		MainMenuDataset rowData = getItem(position);
+		QuicklinkDataset rowData = getItem(position);
+		
 		if (null == convertView) {
-			convertView = inflater.inflate(R.layout.menu_main_list_item, null);
+			convertView = inflater.inflate(R.layout.quicklinks_list_item, null);
 			holder = new ViewHolder(convertView);
 			convertView.setTag(holder);
 		}
+		
+		//fill views with data
 		holder = (ViewHolder) convertView.getTag();
 		title = holder.gettitle();
 		title.setText(rowData.title);
-		detail = holder.getdetail();
-		detail.setText(rowData.detail);
-
 		i11 = holder.getImage();
 		i11.setImageResource(rowData.imageId);
+		
 		return convertView;
 	}
 
 	private class ViewHolder {
 		private View mRow;
 		private TextView title = null;
-		private TextView detail = null;
 		private ImageView i11 = null;
 
 		public ViewHolder(View row) {
@@ -58,13 +57,6 @@ public class MainMenuListAdapter extends ArrayAdapter<MainMenuDataset> {
 				title = (TextView) mRow.findViewById(R.id.title);
 			}
 			return title;
-		}
-
-		public TextView getdetail() {
-			if (null == detail) {
-				detail = (TextView) mRow.findViewById(R.id.detail);
-			}
-			return detail;
 		}
 
 		public ImageView getImage() {

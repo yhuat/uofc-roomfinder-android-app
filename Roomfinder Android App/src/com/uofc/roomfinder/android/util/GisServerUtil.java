@@ -1,6 +1,7 @@
 package com.uofc.roomfinder.android.util;
 
-import com.uofc.roomfinder.android.util.tasks.RouteQuery;
+import com.uofc.roomfinder.android.util.tasks.RoomQuery;
+import com.uofc.roomfinder.android.util.tasks.RoomWithRouteQuery;
 
 public class GisServerUtil {
 
@@ -26,12 +27,24 @@ public class GisServerUtil {
 	 * @param room
 	 * @param impedance
 	 */
-	public static void startRouteQuery(String building, String room, String impedance) {
-		// Log.e("MapScreen", "searching room: " + room + " and building: " + building + "and impedance: " + impedance);
+	public static void startRoomWithRouteQuery(String building, String room, String impedance) {
 
-		// start query task
 		Object[] queryParams = { building, room, impedance };
-		RouteQuery asyncQuery = new RouteQuery();
+		RoomWithRouteQuery asyncQuery = new RoomWithRouteQuery();
+		asyncQuery.execute(queryParams);
+	}
+
+	/**
+	 * starts an async task for querying a building
+	 * 
+	 * @param building
+	 * @param room
+	 * @param impedance
+	 */
+	public static void startRoomQuery(String building, String room) {
+
+		Object[] queryParams = { building, room };
+		RoomQuery asyncQuery = new RoomQuery();
 		asyncQuery.execute(queryParams);
 	}
 
