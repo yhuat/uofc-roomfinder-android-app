@@ -3,6 +3,15 @@
     <item
         android:id="@+id/item_route"
         android:title="directions to..."/>
+    
+        <item
+        android:id="@+id/item_search_room"
+        android:title="search room"/>
+    
+     <item
+        android:id="@+id/item_quicklinks"
+        android:title="quicklinks"/>
+     
     <item
         android:id="@+id/item_ar"
         android:title="augment my reality"/>

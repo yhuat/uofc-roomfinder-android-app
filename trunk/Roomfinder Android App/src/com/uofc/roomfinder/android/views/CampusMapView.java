@@ -9,11 +9,6 @@ import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.android.map.ags.ArcGISLayerInfo;
 import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.GeometryEngine;
-import com.esri.core.geometry.LinearUnit;
-import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
-import com.esri.core.geometry.Unit;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.uofc.roomfinder.android.util.Constants;
@@ -83,9 +78,9 @@ public class CampusMapView extends MapView {
 		this.setExtent(initialExtent); // } }
 
 		// wait until map is initialized
-		while (!this.buildingLayer.isInitialized()) {
-
+		while (!this.getLayer(0).isInitialized()) {
 			try {
+				System.out.println("sleep 100");
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -145,6 +140,8 @@ public class CampusMapView extends MapView {
 			long longFloor = longMeter / 4 + 1;
 			String strFloor = Util.rPad("" + longFloor, 2, '0');
 			this.setActiveFloor(strFloor);
+		}else{
+			System.err.println("height could not be parsed: " + heightInMeter);
 		}
 	}
 
