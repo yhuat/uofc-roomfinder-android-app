@@ -25,19 +25,19 @@ public class RouteAnalyzer {
 		if (route.getRouteSegments().size() > 0)
 			return true;
 
-		// calculate length of whole route
-		double totalLength = 0;
-		for (RouteFeature feature : route.getRouteFeatures()) {
-			totalLength += feature.getLength();
-		}
-		route.setLength(totalLength);
-
 		// analyze way points (segments from server)
 		analyzeWayPoints(route);
 
 		// analyze segments (split route in useful parts)
 		// on height change or entering a building, ...
 		analyzeSegments(route);
+
+		// calculate length of whole route
+		double totalLength = 0;
+		for (RouteSegment segment : route.getRouteSegments()) {
+			totalLength += segment.getLength();
+		}
+		route.setLength(totalLength);
 
 		if (route.getRouteSegments().size() > 0) {
 			return true;
@@ -108,12 +108,12 @@ public class RouteAnalyzer {
 
 			if (setNewSegment) {
 				System.out.println("->split");
-				
+
 				// calculate length of segment and round it to 2 digits
-				double segmentLength = line.calculateLength2D();  
-				long tmpLength = (int)Math.round(segmentLength * 100); // truncates  
-				segmentLength = tmpLength / 100.0; 
-				
+				double segmentLength = line.calculateLength2D();
+				long tmpLength = (int) Math.round(segmentLength * 100); // truncates
+				segmentLength = tmpLength / 100.0;
+
 				// new route from last segment point to this point
 				route.getRouteSegments().add(new RouteSegment(lastSegmentPathPoint, i, "nothing set yet", currentGradient, segmentLength));
 				lastSegmentPathPoint = i; // set new last segment point (to begin the next route with)
