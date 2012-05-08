@@ -6,9 +6,7 @@ import static com.uofc.roomfinder.android.util.Constants.MIN_X_QUERY_COORDINATE;
 import static com.uofc.roomfinder.android.util.Constants.MIN_Y_QUERY_COORDINATE;
 import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
 
-import android.app.ProgressDialog;
 import android.os.AsyncTask;
-import android.os.Looper;
 import android.widget.Toast;
 
 import com.esri.core.geometry.Envelope;
