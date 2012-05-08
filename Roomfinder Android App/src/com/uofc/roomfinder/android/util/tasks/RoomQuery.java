@@ -95,21 +95,28 @@ public class RoomQuery extends AsyncTask<Object, Void, FeatureSet> {
 			Graphic[] grs = result.getGraphics();
 			DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().addGraphics(grs);
 
+			// zoom to room
+			// create envelope which is a bit bigger than the route segment
+			Envelope env = new Envelope();
+			result.getGraphics()[0].getGeometry().queryEnvelope(env);		
+			Envelope newEnv = new Envelope(env.getCenter(), env.getWidth() * Constants.ROOM_ZOOM_FACTOR, env.getHeight() * Constants.ROOM_ZOOM_FACTOR);
+			DataModel.getInstance().getMapActivity().getMapView().setExtent(newEnv);
+
 			// destination point
 			Point endPoint = CoordinateUtil.getCenterCoordinateOfGeometry(grs[0].getGeometry());
 
-			// get floor out of result feature set
+			// build destination point
 			String floorResult = (String) result.getGraphics()[0].getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_COL_FLR_ID);
-
-			// build destination point for route
 			RoutePoint routeEnd = new RoutePoint(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
+			
+			//set layer to destination point
+			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(routeEnd);
 
 			// set destination to data model
 			DataModel.getInstance().setDestinationPoint(routeEnd);
 
-			// display toast for search result
-			Toast toast = Toast.makeText(DataModel.getInstance().getMapActivity(), building + " " + room, Toast.LENGTH_LONG);
-			toast.show();
+			//display result as an info box on map view
+			DataModel.getInstance().getMapActivity().displayInfoBox(building + " " + room + "\n" + DataModel.getInstance().getDestinationText());
 
 		} else {
 

@@ -23,7 +23,7 @@ import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
 import com.uofc.roomfinder.android.util.GisServerUtil;
-import com.uofc.roomfinder.android.util.RouteUtil;
+import com.uofc.roomfinder.android.util.RouteAnalyzer;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.util.Util;
@@ -145,6 +145,7 @@ public class RoomWithRouteQuery extends AsyncTask<Object, Void, FeatureSet> {
 
 			// set destination to data model
 			DataModel.getInstance().setDestinationPoint(routeEnd);
+			DataModel.getInstance().setDestinationText("Route to " + building + " " + room);
 
 			// System.out.println(startPoint.getX() + " - " + startPoint.getY());
 			// System.out.println(endPoint.getX() + " - " + endPoint.getY());
@@ -157,7 +158,7 @@ public class RoomWithRouteQuery extends AsyncTask<Object, Void, FeatureSet> {
 				try {
 					// analyze route
 					if (route.getRouteSegments().size() == 0) {
-						if (!RouteUtil.analyzeRoute(route)) {
+						if (!RouteAnalyzer.analyzeRoute(route)) {
 							return;
 						}
 					}
@@ -170,9 +171,6 @@ public class RoomWithRouteQuery extends AsyncTask<Object, Void, FeatureSet> {
 
 					// display first segment of route
 					MapDrawer.displayRouteSegment(0);
-
-					Toast toast = Toast.makeText(DataModel.getInstance().getMapActivity(), "route to " + building + " " + room, Toast.LENGTH_LONG);
-					toast.show();
 
 				} catch (Exception e1) {
 					Toast toast = Toast.makeText(DataModel.getInstance().getMapActivity(), "error 101: cannot display route", Toast.LENGTH_LONG);

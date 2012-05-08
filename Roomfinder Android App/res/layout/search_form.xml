@@ -45,9 +45,10 @@
 
     <!-- impedance spinner -->
     <LinearLayout
-        android:id="@+id/LinearLayout03"
+        android:id="@+id/spinner_layout"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:visibility="gone" >
 
         <TextView
         xmlns:android="http://schemas.android.com/apk/res/android"

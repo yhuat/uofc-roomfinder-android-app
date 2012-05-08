@@ -21,7 +21,7 @@ public class Quicklinks extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		setTheme(android.R.style.Theme_Light_NoTitleBar);
+		setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 		setContentView(R.layout.quicklinks_list);
 
 		// fill data structure with data

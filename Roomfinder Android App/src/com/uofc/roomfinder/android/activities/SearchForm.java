@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -57,6 +58,11 @@ public class SearchForm extends Activity {
 		spinnerImpedance = (Spinner) findViewById(R.id.spinner_imdedance);
 		Button btnFinishForm = (Button) findViewById(R.id.btnFinishForm);
 
+		// if room search with route set spinner visible
+		if (getIntent().getIntExtra("requestCode", Constants.SEARCH_ROOM) == Constants.SEARCH_ROOM_WITH_ROUTE) {
+			((LinearLayout) findViewById(R.id.spinner_layout)).setVisibility(View.VISIBLE);
+		}
+
 		// Listening to button event
 		btnFinishForm.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -85,8 +91,10 @@ public class SearchForm extends Activity {
 		// room data from method param
 		intent.putExtra("room", buildingAndRoom);
 
-		// impedance from spinner
-		intent.putExtra("impedance", getImpedanceAttributeBySpinnerID((int) spinnerImpedance.getSelectedItemId()));
+		// if room search with route set impedance value to intent
+		if (getIntent().getIntExtra("requestCode", Constants.SEARCH_ROOM) == Constants.SEARCH_ROOM_WITH_ROUTE) {
+			intent.putExtra("impedance", getImpedanceAttributeBySpinnerID((int) spinnerImpedance.getSelectedItemId()));
+		}
 
 		// get parent intent to pass the queried data back to it
 		if (getParent() == null) {

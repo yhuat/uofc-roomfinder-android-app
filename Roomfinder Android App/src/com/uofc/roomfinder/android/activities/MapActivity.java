@@ -10,6 +10,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +37,11 @@ public class MapActivity extends Activity {
 	CampusMapView mapView;
 	TextView txtStatusBar;
 
+	// info box
+	private LinearLayout info_box_layout;
+	private TextView info_box_text;
+	private ImageView info_box_img;
+
 	boolean actualizing = true;
 
 	// Activity methods
@@ -40,7 +49,7 @@ public class MapActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		System.out.println("mapActivity onCreate");
+		setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 		setContentView(R.layout.map_activity);
 
 		// set loading screen
@@ -62,6 +71,11 @@ public class MapActivity extends Activity {
 		System.out.println(DataModel.getInstance().getCurrentPositionWGS84().getX());
 		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX());
 
+		// info box
+		info_box_layout = (LinearLayout) findViewById(R.id.info_box);
+		info_box_text = (TextView) findViewById(R.id.info_txt);
+		info_box_img = (ImageView) findViewById(R.id.info_img);
+
 		// textBTN
 		txtStatusBar = (TextView) findViewById(R.id.txt_status);
 
@@ -81,7 +95,12 @@ public class MapActivity extends Activity {
 			String impedance = intent.getStringExtra("impedance");
 
 			// start async task
-			GisServerUtil.startRoomWithRouteQuery(building, room, impedance);
+			if (impedance == null) {
+				GisServerUtil.startRoomQuery(building, room);
+			} else {
+				GisServerUtil.startRoomWithRouteQuery(building, room, impedance);
+			}
+
 		}
 
 		/*
@@ -177,8 +196,19 @@ public class MapActivity extends Activity {
 	 */
 	public int getMapviewOffsetY() {
 		int mOffset[] = new int[2];
-		this.mapView.getLocationOnScreen(mOffset);
+		this.mapNavBar.getLocationOnScreen(mOffset);
 		return mOffset[1];
+	}
+	
+	/**
+	 * this method returns the x offset of the navbar
+	 * 
+	 * @return
+	 */
+	public int getNavbarOffsetX() {
+		int mOffset[] = new int[2];
+		this.mapNavBar.getLocationOnScreen(mOffset);
+		return mOffset[0];
 	}
 
 	/**
@@ -193,7 +223,7 @@ public class MapActivity extends Activity {
 		}
 
 		// touch coordinates relative to the map view
-		int touchX = (int) event.getX();
+		int touchX = (int) event.getX() - getNavbarOffsetX();
 		int touchY = (int) event.getY() - getMapviewOffsetY();
 
 		int eventaction = event.getAction();
@@ -235,7 +265,7 @@ public class MapActivity extends Activity {
 	 * creates option menu out of xml file
 	 */
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {		
+	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.map_menu, menu);
 		return true;
@@ -291,7 +321,7 @@ public class MapActivity extends Activity {
 		super.onActivityResult(requestCode, resultCode, data);
 
 		System.out.println("getting result");
-		
+
 		// Receiving the Data
 		Intent intent = data;
 
@@ -307,15 +337,15 @@ public class MapActivity extends Activity {
 			return;
 
 		System.out.println("requestcode: " + requestCode + "resultcode: " + resultCode);
-		
+
 		switch (requestCode) {
 		case Constants.SEARCH_ROOM:
-			//exit condition
-			if(intent.getStringExtra("room").split(regex).length < 2){
+			// exit condition
+			if (intent.getStringExtra("room").split(regex).length < 2) {
 				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
 				return;
 			}
-			
+
 			// split in room and building
 			// received data should look like ICT550
 			building = intent.getStringExtra("room").split(regex)[0];
@@ -324,12 +354,12 @@ public class MapActivity extends Activity {
 			break;
 
 		case Constants.SEARCH_ROOM_WITH_ROUTE:
-			//exit condition
-			if(intent.getStringExtra("room").split(regex).length < 2){
+			// exit condition
+			if (intent.getStringExtra("room").split(regex).length < 2) {
 				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
 				return;
 			}
-							
+
 			// split in room and building
 			// received data should look like ICT550 and should have the param impedance
 			building = intent.getStringExtra("room").split(regex)[0];
@@ -340,12 +370,12 @@ public class MapActivity extends Activity {
 
 		case Constants.QUICKLINKS:
 
-			//exit condition
-			if(intent.getStringExtra("room").split(regex).length < 2){
+			// exit condition
+			if (intent.getStringExtra("room").split(regex).length < 2) {
 				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
 				return;
 			}
-							
+
 			// split in room and building
 			// received data should look like ICT550 and should have the param impedance
 			building = intent.getStringExtra("room").split(regex)[0];
@@ -359,6 +389,49 @@ public class MapActivity extends Activity {
 		}
 		System.out.println("getting result end");
 
+	}
+
+	/**
+	 * displays an info box on map view at the bottom of the screen
+	 * 
+	 * default icon on the left: info icon
+	 * 
+	 * @param infoText
+	 *            text to be displayed in the box
+	 */
+	public void displayInfoBox(String infoText) {
+		displayInfoBox(infoText, R.drawable.info_icon);
+	}
+
+	/**
+	 * displays an info box on map view at the bottom of the screen with defined image
+	 * 
+	 * @param infoText
+	 *            text to be displayed in the box
+	 * @param imgID
+	 *            ID of the image to display on the left
+	 */
+	public void displayInfoBox(String infoText, int imgID) {
+		// make layout visible if it is not visible already
+		if (info_box_layout.getVisibility() != View.VISIBLE) {
+			info_box_layout.setVisibility(View.VISIBLE);
+		}
+
+		// set text to box
+		info_box_text.setText(infoText);
+
+		// set image and set transparency
+		info_box_img.setImageResource(imgID);
+		info_box_img.setAlpha(200);
+	}
+	
+	/**
+	 * makes navbar linear layout visible
+	 */
+	public void enableNavBarLayout(){
+		System.out.println(findViewById(R.id.layout_navbar).getVisibility());
+		findViewById(R.id.layout_navbar).setVisibility(View.VISIBLE);
+		System.out.println(findViewById(R.id.layout_navbar).getVisibility());
 	}
 
 }

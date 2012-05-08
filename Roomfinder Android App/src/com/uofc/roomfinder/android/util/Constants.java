@@ -44,5 +44,10 @@ public class Constants {
 	public final static int SEARCH_ROOM = 1;
 	public final static int SEARCH_ROOM_WITH_ROUTE = 2;
 	public final static int QUICKLINKS = 3;
+	
+	//map drawing
+	public static final double SEGMENT_ZOOM_FACTOR = 2.2;
+	public static final double ROOM_ZOOM_FACTOR = 12.0;
+	
 
 }

@@ -12,6 +12,7 @@ import com.esri.core.geometry.Envelope;
 import com.esri.core.renderer.SimpleRenderer;
 import com.esri.core.symbol.SimpleFillSymbol;
 import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.util.Util;
 
 /**
@@ -144,10 +145,21 @@ public class CampusMapView extends MapView {
 			System.err.println("height could not be parsed: " + heightInMeter);
 		}
 	}
+	
+	/**
+	 * sets active height and switches the room layer to corresponding floor
+	 * 
+	 * @param point
+	 */
+	public void setActiveHeight(RoutePoint point) {
+		setActiveHeight(point.getZ());
+	}
 
 	// getter & setter
 	public GraphicsLayer getGraphicsLayer() {
 		return graphicsLayer;
 	}
+
+	
 
 }
