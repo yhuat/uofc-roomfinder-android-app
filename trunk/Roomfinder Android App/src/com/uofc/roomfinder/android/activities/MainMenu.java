@@ -30,7 +30,7 @@ public class MainMenu extends ListActivity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		setTheme(android.R.style.Theme_Light_NoTitleBar);
+		setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 		setContentView(R.layout.menu_main);
 
 		// fill data array list with menu data
@@ -57,6 +57,7 @@ public class MainMenu extends ListActivity {
 		switch (position) {
 		case MENUITEM_DIRECTION:
 			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			nextScreen.putExtra("requestCode", Constants.SEARCH_ROOM_WITH_ROUTE);
 			startActivityForResult(nextScreen, Constants.SEARCH_ROOM_WITH_ROUTE);
 			break;
 
@@ -69,6 +70,7 @@ public class MainMenu extends ListActivity {
 
 		case MENUITEM_SEARCH_ROOM:
 			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			nextScreen.putExtra("requestCode", Constants.SEARCH_ROOM);
 			startActivityForResult(nextScreen, Constants.SEARCH_ROOM);
 			break;
 

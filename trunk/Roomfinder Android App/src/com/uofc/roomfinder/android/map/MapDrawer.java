@@ -11,48 +11,58 @@ import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.Symbol;
 import com.uofc.roomfinder.android.DataModel;
-import com.uofc.roomfinder.android.util.RouteUtil;
+import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.android.util.RouteAnalyzer;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
 public class MapDrawer {
 
-	private static final double SEGMENT_ZOOM_FACTOR = 2.2;
+	/**
+	 * displays the specified route segment on the route in the data model
+	 * 
+	 * @param segmentIndex
+	 *            index of the route segment
+	 * @throws Exception
+	 */
+	public static void displayRouteSegment(int segmentIndex) throws Exception {
+		String info_text = DataModel.getInstance().getDestinationText();
+		info_text += " (" + (segmentIndex + 1) + "/" + DataModel.getInstance().getRoute().getRouteSegments().size() + ")";
+		info_text += "\n " + DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getLength() + "gr: " + DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getGradient();
+
+		// display info box on map view
+		DataModel.getInstance().getMapActivity().displayInfoBox(info_text);
+		
+		
+		RouteSegment segment = DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex);
+
+		// display route
+		displayRouteSegment(segment);
+	}
 
 	/**
 	 * displays the specified route segment on the route in the data model
 	 * 
-	 * @param segmentIndex index of the route segment
-	 * @throws Exception 
-	 */
-	public static void displayRouteSegment(int segmentIndex) throws Exception {
-		System.out.println("route segments: " + DataModel.getInstance().getRoute().getRouteSegments());
-		
-		RouteSegment segment = DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex);
-		displayRouteSegment(segment);
-	}
-	
-	/**
-	 * displays the specified route segment on the route in the data model
-	 * 
-	 * @param segment segment to display
+	 * @param segment
+	 *            segment to display
 	 * @throws Exception
 	 */
 	public static void displayRouteSegment(RouteSegment segment) throws Exception {
 		displayRouteSegment(DataModel.getInstance().getRoute(), segment);
 	}
-	
+
 	/**
 	 * displays the specified route segment
-	 *
-	 * @param segment segment index to display
+	 * 
+	 * @param segment
+	 *            segment index to display
 	 * @throws Exception
 	 * 
 	 */
 	public static void displayRouteSegment(Route route, RouteSegment segment) throws Exception {
 
 		System.out.println("segment in display method: " + segment);
-		
+
 		// get start and end points of the segment
 		int startPointOfPath = segment.getStartPathPoint();
 		int endPointOfPath = segment.getEndPathPoint();
@@ -89,7 +99,7 @@ public class MapDrawer {
 
 		// get segments of path if not available
 		if (route.getRouteSegments().size() < 1) {
-			RouteUtil.analyzeRoute(route);
+			RouteAnalyzer.analyzeRoute(route);
 
 			// no segments could be found quit
 			if (route.getRouteSegments().size() < 1) {
@@ -99,17 +109,13 @@ public class MapDrawer {
 
 		// display circle at each waypoint
 		/*
-		for (RouteSegment segment : route.getRouteSegments()) {
-			RoutePoint e = route.getPath().get(segment.getStartPathPoint());
-			Graphic graphic = new Graphic(new Point(e.getX(), e.getY()), new SimpleMarkerSymbol(Color.YELLOW, 10, STYLE.CIRCLE));
-			DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(graphic);
-			
-			//endpoints
-			e = route.getPath().get(segment.getStartPathPoint());
-			graphic = new Graphic(new Point(e.getX(), e.getY()), new SimpleMarkerSymbol(Color.GREEN, 10, STYLE.CIRCLE));
-			DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(graphic);
-		}*/
-		
+		 * for (RouteSegment segment : route.getRouteSegments()) { RoutePoint e = route.getPath().get(segment.getStartPathPoint()); Graphic graphic = new
+		 * Graphic(new Point(e.getX(), e.getY()), new SimpleMarkerSymbol(Color.YELLOW, 10, STYLE.CIRCLE));
+		 * DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(graphic);
+		 * 
+		 * //endpoints e = route.getPath().get(segment.getStartPathPoint()); graphic = new Graphic(new Point(e.getX(), e.getY()), new
+		 * SimpleMarkerSymbol(Color.GREEN, 10, STYLE.CIRCLE)); DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(graphic); }
+		 */
 
 		// create poly line
 		Polyline pLine = new Polyline();
@@ -132,9 +138,9 @@ public class MapDrawer {
 				// add segment to polyLine
 				pLine.addSegment(segment, true);
 			}
-			//switch to according room layer
+			// switch to according room layer
 			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(route.getPath().get(startPointOfPath).getZ());
-			
+
 			// add created line to graphics layer
 			DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().addGraphic(new Graphic(pLine, lineSymbol));
 
@@ -143,14 +149,12 @@ public class MapDrawer {
 			pLine.queryEnvelope(env);
 
 			// create envelope which is a bit bigger than the route segment
-			Envelope newEnv = new Envelope(env.getCenter(), env.getWidth() * SEGMENT_ZOOM_FACTOR, env.getHeight() * SEGMENT_ZOOM_FACTOR);
+			Envelope newEnv = new Envelope(env.getCenter(), env.getWidth() * Constants.SEGMENT_ZOOM_FACTOR, env.getHeight() * Constants.SEGMENT_ZOOM_FACTOR);
 			DataModel.getInstance().getMapActivity().getMapView().setExtent(newEnv);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
-
-	
 
 }

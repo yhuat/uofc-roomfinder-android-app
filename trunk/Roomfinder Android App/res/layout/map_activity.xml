@@ -17,6 +17,8 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
+    <!-- status label -->
+
     <LinearLayout
         android:id="@+id/layout_txt"
         android:layout_width="fill_parent"
@@ -24,7 +26,8 @@
         android:layout_above="@id/map"
         android:layout_alignBottom="@id/map"
         android:layout_alignRight="@id/map"
-        android:orientation="horizontal" >
+        android:orientation="horizontal"
+        android:visibility="gone" >
 
         <TextView
             android:id="@+id/txt_status"
@@ -35,23 +38,86 @@
             android:text="@string/map_txt_initial_status" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layout_plusminus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <!-- route navigation bar -->
+
+    <RelativeLayout
+        android:id="@+id/layout_navbar"
+        android:layout_width="fill_parent"
+        android:layout_height="50dip"
         android:layout_above="@id/map"
         android:layout_alignTop="@id/map"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="32dp"
-        android:orientation="horizontal" >
+        android:layout_marginBottom="32dip"
+        android:layout_marginLeft="5dip"
+        android:layout_marginRight="5dip"
+        android:layout_marginTop="7dip"
+        android:background="@drawable/rounded_edges"
+        android:orientation="horizontal"
+        android:visibility="invisible" >
+
+        <ImageView
+            android:layout_width="18dip"
+            android:layout_height="18dip"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dip"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerInside"
+            android:src="@drawable/start_icon" />
+
+        <ImageView
+            android:layout_width="18dip"
+            android:layout_height="18dip"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dip"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerInside"
+            android:src="@drawable/flag_icon" />
 
         <com.uofc.roomfinder.android.views.RouteNavigationBar
             android:id="@+id/nav_bar"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginBottom="6dp"
-            android:layout_marginRight="6dp" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true" />
+    </RelativeLayout>
 
+    <!-- map info box -->
+
+    <LinearLayout
+        android:id="@+id/info_box"
+        android:layout_width="300dip"
+        android:layout_height="50dip"
+        android:layout_above="@id/map"
+        android:layout_alignBottom="@id/map"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/rounded_edges"
+        android:orientation="horizontal"
+        android:visibility="invisible" >
+
+        <ImageView
+            android:id="@+id/info_img"
+            android:layout_width="40dip"
+            android:layout_height="40dip"
+            android:layout_marginLeft="5dip"
+            android:layout_marginTop="5dip"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerCrop"
+            android:src="@drawable/info_icon" />
+
+        <TextView
+            android:id="@+id/info_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:maxLines="2"
+            android:paddingLeft="20dip"
+            android:paddingRight="20dip"
+            android:text=""
+            android:textColor="#888888"
+            android:textStyle="bold" />
     </LinearLayout>
 
 </RelativeLayout>
