@@ -15,10 +15,13 @@ public class Constants {
 	public final static String MAPSERVER_BUILDINGS_URL = UOFC_ARCGIS_SERVER_URL + "/Buildings/MapServer";
 	public final static String MAPSERVER_ROOM_QUERY_URL = UOFC_ARCGIS_SERVER_URL + "/Rooms/Rooms/MapServer/111";
 
-	public final static String QUERY_COL_RM_ID = "SDE.DBO.Building_Room.RM_ID";
-	public final static String QUERY_COL_BLD_ID = "SDE.DBO.Building_Room.BLD_ID";
-	public final static String QUERY_COL_FLR_ID = "SDE.DBO.Building_Room.FLR_ID";
-
+	public final static String QUERY_ROOM_COL_RM_ID = "SDE.DBO.Building_Room.RM_ID";
+	public final static String QUERY_ROOM_COL_BLD_ID = "SDE.DBO.Building_Room.BLD_ID";
+	public final static String QUERY_ROOM_COL_FLR_ID = "SDE.DBO.Building_Room.FLR_ID";
+	
+	public final static String QUERY_BUILDING_COL_ID = "SDE.DBO.Building_Info.BLDG_ID";
+	public final static String QUERY_BUILDING_COL_NAME = "SDE.DBO.Building_Info.BLDG_NAME";
+	
 	public final static String ROUTING_IMPEDANCE_SHORTEST_PATH = "Length";
 	public final static String ROUTING_IMPEDANCE_AVOID_OUTDOOR = "OutdoorCost";
 	public final static String ROUTING_IMPEDANCE_AVOID_INDOOR = "IndoorCost";

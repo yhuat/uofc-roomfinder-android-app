@@ -118,8 +118,6 @@ public class RouteNavigationBar extends View {
 			double routeLength = DataModel.getInstance().getRoute().getLength();
 			double routeLengthWithoutSmallSegments = routeLength;
 
-			System.out.println("navbar width" + this.getWidth() + " - " + navbarWidth);
-
 			// how many small segments are in route?
 			int smallSegmentCounter = 0;
 			for (RouteSegment segment : this.routeSegments) {
@@ -134,7 +132,7 @@ public class RouteNavigationBar extends View {
 				}
 			}
 
-			System.out.println("small segments: " + smallSegmentCounter);
+			//System.out.println("small segments: " + smallSegmentCounter);
 
 			// draw navbar background (used as boarder)
 			paint.setARGB(NAVBAR_TRANSPARENCY, 100, 100, 100);
@@ -171,10 +169,10 @@ public class RouteNavigationBar extends View {
 				} else {
 					// calculate width of current segment
 					currentSegmentWidth = (int) Math.round(segment.getLength() / routeLengthWithoutSmallSegments * navbarWidthWithoutSmallSegments);
-					System.out.println("percentage: " +segment.getLength() / routeLengthWithoutSmallSegments + " - " + navbarWidthWithoutSmallSegments);
 				}
 
-				System.out.println(currentSegmentWidth + "/" + navbarWidth);
+				
+				//System.out.println(currentSegmentWidth + "/" + navbarWidth);
 
 				left = horizontalOffset;
 				top = NAVBAR_PADDING_VERTICAL + NAVBAR_BORDER_WIDTH;

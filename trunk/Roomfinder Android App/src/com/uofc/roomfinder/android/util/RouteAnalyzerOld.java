@@ -13,7 +13,7 @@ import com.uofc.roomfinder.entities.routing.RouteFeature;
 import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
-public class RouteAnalyzer {
+public class RouteAnalyzerOld {
 
 	/**
 	 * generates route segments and analyzes the direction list returned by the NA server
@@ -47,7 +47,7 @@ public class RouteAnalyzer {
 	}
 
 	/**
-	 * split route in segments
+	 * split route in segments 
 	 * 
 	 * @param route
 	 * @param path
