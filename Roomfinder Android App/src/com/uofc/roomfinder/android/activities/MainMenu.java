@@ -62,13 +62,12 @@ public class MainMenu extends ListActivity {
 			nextScreen.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
 			startActivity(nextScreen);
 			break;
+
 		case MENUITEM_CAMPUS_MAP:
 			nextScreen = new Intent(getApplicationContext(), MapActivity.class);
 			startActivity(nextScreen);
 			break;
 
-		default:
-			break;
 		}
 	}
 

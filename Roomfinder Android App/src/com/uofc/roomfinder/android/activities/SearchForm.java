@@ -21,8 +21,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
-
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
@@ -42,6 +40,8 @@ import com.uofc.roomfinder.util.UrlReader;
  * 
  */
 public class SearchForm extends Activity {
+
+	private static final String CONTACT_DOWNLOAD_ERROR = "error";
 
 	EditText inputSearch;
 	ListView listView;
@@ -85,6 +85,10 @@ public class SearchForm extends Activity {
 	 * return data -> building name + room number, should look like 'ICT550'
 	 */
 	private void returnToParentIntent(String buildingAndRoom) {
+
+		if (buildingAndRoom.equals(CONTACT_DOWNLOAD_ERROR)) {
+			// TODO: display err msg
+		}
 
 		Intent intent = new Intent();
 
@@ -152,29 +156,45 @@ public class SearchForm extends Activity {
 	 * @author benjaminlautenschlaeger
 	 * 
 	 */
-	private class LoadContactsTask extends AsyncTask<String, Void, ContactList> {
+	private class LoadContactsTask extends AsyncTask<String, Void, String> {
+
 		ProgressDialog dialog;
 
 		@Override
 		protected void onPreExecute() {
-			dialog = ProgressDialog.show(SearchForm.this, "loading", "downloading contacts");
+			dialog = ProgressDialog.show(SearchForm.this, "loading", "searching contact...");
 
 		}
 
 		@Override
-		protected ContactList doInBackground(String... params) {
+		protected String doInBackground(String... params) {
+			System.out.println("contacts query url: " + Constants.REST_CONTACTS_URL + params[0]);
+
 			// send query to REST service (which querys the public UofC LDAP directory)
-			ContactList contacts = new ContactList(UrlReader.readFromURL(Constants.REST_CONTACTS_URL + params[0]));
-			return contacts;
+			return UrlReader.readFromURL(Constants.REST_CONTACTS_URL + params[0]);
 		}
 
 		@Override
-		protected void onPostExecute(ContactList contacts) {
-			SearchForm.this.contacts = contacts;
+		protected void onPostExecute(String jsonResponse) {
+			// exit condition 1
+			if (jsonResponse == null) {
+				returnToParentIntent(CONTACT_DOWNLOAD_ERROR);
+				return;
+			}
+
+			// try to deserialize the json string into a contact list
+			try {
+				SearchForm.this.contacts = new ContactList(jsonResponse);
+			} catch (Exception e) {
+				e.printStackTrace();
+				returnToParentIntent(CONTACT_DOWNLOAD_ERROR);
+				return;
+			}
 
 			// 0 result -> display: no result found
 			if (contacts.size() == 0) {
-				Toast.makeText(SearchForm.this, "no result found", Toast.LENGTH_LONG).show();
+				returnToParentIntent(CONTACT_DOWNLOAD_ERROR);
+				// Toast.makeText(SearchForm.this, "no result found", Toast.LENGTH_LONG).show();
 
 				/*
 				 * List<String> values = new LinkedList<String>(); values.add("no result found"); String[] valuesStringArray = Arrays.copyOf(values.toArray(),

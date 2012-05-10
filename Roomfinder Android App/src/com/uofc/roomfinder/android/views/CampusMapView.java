@@ -97,6 +97,8 @@ public class CampusMapView extends MapView {
 	 * @param floor
 	 */
 	private void displayLayer(String floor) {
+		System.out.println("displaying layer of floor: " + floor);
+		
 		// Query dynamic map service layer
 		ArcGISDynamicMapServiceLayer dynamicLayer = (ArcGISDynamicMapServiceLayer) this.getLayer(BUILDING_LAYER_INDEX);
 
@@ -111,6 +113,7 @@ public class CampusMapView extends MapView {
 		// set the one layer visible
 		for (ArcGISLayerInfo info : layerinfos) {
 			if (info.getName().contains(floor)) {
+				System.out.println("layer found, setting to visible");
 				info.setVisible(true);
 			}
 		}
@@ -124,7 +127,6 @@ public class CampusMapView extends MapView {
 	 * @param floorNumber
 	 */
 	public void setActiveFloor(String floorNumber) {
-		System.out.println("setting floor to: " + floorNumber);
 		this.activeFloor = floorNumber;
 		displayLayer(this.activeFloor);
 	}
@@ -135,6 +137,7 @@ public class CampusMapView extends MapView {
 	 * @param heightInMeter
 	 */
 	public void setActiveHeight(double heightInMeter) {
+		System.out.println("setting height in meters to: " + heightInMeter);
 		long longMeter = Math.round(heightInMeter);
 
 		if (longMeter % 4 == 0) {

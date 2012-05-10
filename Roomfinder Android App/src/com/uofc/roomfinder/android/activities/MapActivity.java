@@ -11,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -48,8 +49,14 @@ public class MapActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
+		// Request for the progress bar to be shown in the title
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
 		setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 		setContentView(R.layout.map_activity);
+
+		// Make sure the progress bar is visible
+		setProgressBarVisibility(true);
 
 		// set loading screen
 		// this.progressDialog = ProgressDialog.show(this, "", "Please wait....initializing maps.");
@@ -92,6 +99,7 @@ public class MapActivity extends Activity {
 			String building = receivedData.split(regex)[0];
 			String room = receivedData.split(regex)[1];
 			String impedance = intent.getStringExtra("impedance");
+			System.out.println("mapactivity: " + impedance);
 
 			// start async task
 			if (impedance == null) {
@@ -198,7 +206,7 @@ public class MapActivity extends Activity {
 		this.mapNavBar.getLocationOnScreen(mOffset);
 		return mOffset[1];
 	}
-	
+
 	/**
 	 * this method returns the x offset of the navbar
 	 * 
@@ -281,11 +289,13 @@ public class MapActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.item_route:
 			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			nextScreen.putExtra("requestCode", Constants.SEARCH_ROOM_WITH_ROUTE);
 			startActivityForResult(nextScreen, Constants.SEARCH_ROOM_WITH_ROUTE);
 			break;
 
 		case R.id.item_search_room:
 			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
+			nextScreen.putExtra("requestCode", Constants.SEARCH_ROOM);
 			startActivityForResult(nextScreen, Constants.SEARCH_ROOM);
 			break;
 
@@ -423,14 +433,12 @@ public class MapActivity extends Activity {
 		info_box_img.setImageResource(imgID);
 		info_box_img.setAlpha(200);
 	}
-	
+
 	/**
 	 * makes navbar linear layout visible
 	 */
-	public void enableNavBarLayout(){
-		System.out.println(findViewById(R.id.layout_navbar).getVisibility());
+	public void enableNavBarLayout() {
 		findViewById(R.id.layout_navbar).setVisibility(View.VISIBLE);
-		System.out.println(findViewById(R.id.layout_navbar).getVisibility());
 	}
 
 }

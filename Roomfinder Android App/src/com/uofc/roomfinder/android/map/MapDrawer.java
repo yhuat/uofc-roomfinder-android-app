@@ -12,11 +12,13 @@ import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.Symbol;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
-import com.uofc.roomfinder.android.util.RouteAnalyzer;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
 public class MapDrawer {
+
+	private static final int ROUTE_LINE_COLOR = Color.BLUE;
+	private static final int ROUTE_LINE_SIZE = 4;
 
 	/**
 	 * displays the specified route segment on the route in the data model
@@ -28,12 +30,12 @@ public class MapDrawer {
 	public static void displayRouteSegment(int segmentIndex) throws Exception {
 		String info_text = DataModel.getInstance().getDestinationText();
 		info_text += " (" + (segmentIndex + 1) + "/" + DataModel.getInstance().getRoute().getRouteSegments().size() + ")";
-		info_text += "\n " + DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getLength() + "gr: " + DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getGradient();
+		info_text += "\n " + DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getLength() + "gr: "
+				+ DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getGradient();
 
 		// display info box on map view
 		DataModel.getInstance().getMapActivity().displayInfoBox(info_text);
-		
-		
+
 		RouteSegment segment = DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex);
 
 		// display route
@@ -97,14 +99,9 @@ public class MapDrawer {
 		// remove everything from graphics layer
 		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().removeAll();
 
-		// get segments of path if not available
+		// no segments could be found quit
 		if (route.getRouteSegments().size() < 1) {
-			RouteAnalyzer.analyzeRoute(route);
-
-			// no segments could be found quit
-			if (route.getRouteSegments().size() < 1) {
-				throw new Exception("no segments to display");
-			}
+			throw new Exception("no segments to display");
 		}
 
 		// display circle at each waypoint
@@ -119,7 +116,7 @@ public class MapDrawer {
 
 		// create poly line
 		Polyline pLine = new Polyline();
-		Symbol lineSymbol = new SimpleLineSymbol(Color.BLUE, 4);
+		Symbol lineSymbol = new SimpleLineSymbol(ROUTE_LINE_COLOR, ROUTE_LINE_SIZE);
 
 		// add each segment of route to a poly line
 		Point pa = null;
