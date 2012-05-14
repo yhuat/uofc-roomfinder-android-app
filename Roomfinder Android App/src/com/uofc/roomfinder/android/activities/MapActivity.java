@@ -26,6 +26,7 @@ import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.GisServerUtil;
 import com.uofc.roomfinder.android.views.CampusMapView;
 import com.uofc.roomfinder.android.views.RouteNavigationBar;
+import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class MapActivity extends Activity {
@@ -72,10 +73,10 @@ public class MapActivity extends Activity {
 		// DataModel.getInstance().setCurrentPositionNAD83(new Point(701192.8861, 5662659.7696)); //franks office
 		DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.130147, 51.080267)); // franks office
 
-		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX() + ", " + DataModel.getInstance().getCurrentPositionNAD83().getY());
-
-		System.out.println(DataModel.getInstance().getCurrentPositionWGS84().getX());
-		System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX());
+		// System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX() + ", " + DataModel.getInstance().getCurrentPositionNAD83().getY());
+		//
+		// System.out.println(DataModel.getInstance().getCurrentPositionWGS84().getX());
+		// System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX());
 
 		// info box
 		info_box_layout = (LinearLayout) findViewById(R.id.info_box);
@@ -223,11 +224,6 @@ public class MapActivity extends Activity {
 	 */
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-
-		int j = 0;
-		for (Layer layer : this.mapView.getLayers()) {
-			System.out.println(j++ + " - " + layer.isVisible() + " - " + layer.getName() + " - " + layer.getUrl());
-		}
 
 		// touch coordinates relative to the map view
 		int touchX = (int) event.getX() - getNavbarOffsetX();
@@ -379,18 +375,19 @@ public class MapActivity extends Activity {
 
 		case Constants.QUICKLINKS:
 
+			// get x, y, z coordinate
+			double x = intent.getDoubleExtra("roomX", -1);
+			double y = intent.getDoubleExtra("roomY", -1);
+			double z = intent.getDoubleExtra("roomZ", -1);
+			String text = intent.getStringExtra("roomText");
+
 			// exit condition
-			if (intent.getStringExtra("room").split(regex).length < 2) {
-				Toast.makeText(getApplicationContext(), "error 102: building and room could not be splitted", Toast.LENGTH_SHORT).show();
+			if (x == -1 || y == -1 || z == -1) {
+				Toast.makeText(getApplicationContext(), "error 102: no coordinates came back from quicklinks", Toast.LENGTH_SHORT).show();
 				return;
 			}
 
-			// split in room and building
-			// received data should look like ICT550 and should have the param impedance
-			building = intent.getStringExtra("room").split(regex)[0];
-			room = intent.getStringExtra("room").split(regex)[1];
-			impedance = "Length";
-			GisServerUtil.startRoomWithRouteQuery(building, room, impedance);
+			GisServerUtil.createRoute(new RoutePoint(x, y, z), text);
 			break;
 
 		default:

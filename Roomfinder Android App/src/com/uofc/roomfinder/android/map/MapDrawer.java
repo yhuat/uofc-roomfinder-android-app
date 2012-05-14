@@ -9,9 +9,12 @@ import com.esri.core.geometry.Polyline;
 import com.esri.core.geometry.Segment;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleLineSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
 import com.esri.core.symbol.Symbol;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.entities.routing.Gradient;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
@@ -19,6 +22,7 @@ public class MapDrawer {
 
 	private static final int ROUTE_LINE_COLOR = Color.BLUE;
 	private static final int ROUTE_LINE_SIZE = 4;
+	private static final int ROUTE_POINT_SIZE = 6;
 
 	/**
 	 * displays the specified route segment on the route in the data model
@@ -70,7 +74,7 @@ public class MapDrawer {
 		int endPointOfPath = segment.getEndPathPoint();
 
 		// display it
-		displayRoute(route, startPointOfPath, endPointOfPath);
+		displayRoute(route, startPointOfPath, endPointOfPath, segment.getGradient());
 
 	}
 
@@ -86,6 +90,11 @@ public class MapDrawer {
 		displayRoute(route, startPointOfPath, endPointOfPath);
 	}
 
+	// handling default value for gradient
+	private static void displayRoute(Route route, int startPointOfPath, int endPointOfPath) throws Exception {
+		displayRoute(route, startPointOfPath, endPointOfPath, Gradient.NEUTRAL);
+	}
+
 	/**
 	 * displays a route on graphical layer of map view from start point to end point
 	 * 
@@ -94,25 +103,69 @@ public class MapDrawer {
 	 * @param endPointOfPath
 	 * @throws Exception
 	 */
-	public static void displayRoute(Route route, int startPointOfPath, int endPointOfPath) throws Exception {
-
-		// remove everything from graphics layer
-		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().removeAll();
+	public static void displayRoute(Route route, int startPointOfPath, int endPointOfPath, Gradient gradient) throws Exception {
 
 		// no segments could be found quit
 		if (route.getRouteSegments().size() < 1) {
 			throw new Exception("no segments to display");
 		}
 
-		// display circle at each waypoint
-		/*
-		 * for (RouteSegment segment : route.getRouteSegments()) { RoutePoint e = route.getPath().get(segment.getStartPathPoint()); Graphic graphic = new
-		 * Graphic(new Point(e.getX(), e.getY()), new SimpleMarkerSymbol(Color.YELLOW, 10, STYLE.CIRCLE));
-		 * DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(graphic);
-		 * 
-		 * //endpoints e = route.getPath().get(segment.getStartPathPoint()); graphic = new Graphic(new Point(e.getX(), e.getY()), new
-		 * SimpleMarkerSymbol(Color.GREEN, 10, STYLE.CIRCLE)); DataModel.getInstance().getMap().getGraphicsLayer().addGraphic(graphic); }
-		 */
+		Envelope env;
+		double zoomWidth;
+
+		// if the segment is neutral display the route as a line
+		if (gradient == Gradient.NEUTRAL) {
+			env = drawLine(route, startPointOfPath, endPointOfPath);
+			zoomWidth = env.getWidth() * Constants.SEGMENT_ZOOM_FACTOR;
+		} else {
+			// otherwise just display the starting point
+			env = drawPoint(route, startPointOfPath);
+			zoomWidth = 50;
+		}
+
+		// switch to according room layer
+		DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(route.getPath().get(startPointOfPath).getZ());
+
+		// create envelope which is a bit bigger than the route segment
+		Envelope newEnv = new Envelope(env.getCenter(), zoomWidth, zoomWidth);
+		DataModel.getInstance().getMapActivity().getMapView().setExtent(newEnv);
+	}
+
+	/**
+	 * draws a point on the graphic layer
+	 * 
+	 * @param route
+	 * @param pointIndex
+	 * @return
+	 */
+	private static Envelope drawPoint(Route route, int pointIndex) {
+		// remove everything from graphics layer
+		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().removeAll();
+
+		Point point = new Point(route.getPath().get(pointIndex).getX(), route.getPath().get(pointIndex).getY());
+		Graphic graphic = new Graphic(point, new SimpleMarkerSymbol(ROUTE_LINE_COLOR, ROUTE_POINT_SIZE, STYLE.CIRCLE));
+
+		// add created line to graphics layer
+		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().addGraphic(graphic);
+
+		// query and return the envelope of the line
+		Envelope env = new Envelope();
+		point.queryEnvelope(env);
+
+		return env;
+	}
+
+	/**
+	 * draws the segment as a line on the graphics layer
+	 * 
+	 * @param route
+	 * @param startPointOfPath
+	 * @param endPointOfPath
+	 * @return
+	 */
+	private static Envelope drawLine(Route route, int startPointOfPath, int endPointOfPath) {
+		// remove everything from graphics layer
+		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().removeAll();
 
 		// create poly line
 		Polyline pLine = new Polyline();
@@ -135,23 +188,19 @@ public class MapDrawer {
 				// add segment to polyLine
 				pLine.addSegment(segment, true);
 			}
-			// switch to according room layer
-			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(route.getPath().get(startPointOfPath).getZ());
-
-			// add created line to graphics layer
-			DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().addGraphic(new Graphic(pLine, lineSymbol));
-
-			// center route and zoom a bit out
-			Envelope env = new Envelope();
-			pLine.queryEnvelope(env);
-
-			// create envelope which is a bit bigger than the route segment
-			Envelope newEnv = new Envelope(env.getCenter(), env.getWidth() * Constants.SEGMENT_ZOOM_FACTOR, env.getHeight() * Constants.SEGMENT_ZOOM_FACTOR);
-			DataModel.getInstance().getMapActivity().getMapView().setExtent(newEnv);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
+
+		// add created line to graphics layer
+		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayer().addGraphic(new Graphic(pLine, lineSymbol));
+
+		// query and return the envelope of the line
+		Envelope env = new Envelope();
+		pLine.queryEnvelope(env);
+
+		return env;
 	}
 
 }
