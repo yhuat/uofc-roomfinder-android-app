@@ -186,7 +186,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 		boolean setNewSegment = false;
 		String newSegmentText = null;
 		String newSegmentLocation = null;
-		String oldSegmentLocation = null;
+		String currentSegmentLocation = null;
 		String oldoldSegmentLocation = null; // segment before the last segment, is needed to sort out weird stuff from the naserver...
 		int lastSegmentPathPoint = 0;
 
@@ -204,14 +204,16 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 			segment.setEnd(new Point(nextWaypoint.getX(), nextWaypoint.getY()));
 			line.addSegment(segment, true);
 
-			// determine start building
-			if (i == 0) {
-				oldSegmentLocation = determineContainingBuilding(buildings, segment);
-			}
+			// determine current segment location
+			// in which building is the current waypoint
+			currentSegmentLocation = determineContainingBuilding(buildings, new Point(currentWayPoint.getX(), currentWayPoint.getY()));
+			newSegmentLocation = determineContainingBuilding(buildings, new Point(nextWaypoint.getX(), nextWaypoint.getY()));
+			System.out.println("cur" + currentSegmentLocation + " next " + newSegmentLocation);
 
 			// on height change (if not outside)
 			// =================
-			if (nextWaypoint.getZ() != currentWayPoint.getZ() && !determineContainingBuilding(buildings, segment).equals("outside")) {
+			if (nextWaypoint.getZ() != currentWayPoint.getZ()
+					&& !determineContainingBuilding(buildings, new Point(currentWayPoint.getX(), currentWayPoint.getY())).equals("outside")) {
 
 				// now it's going down (was before: neutral or upstairs)
 				if (nextWaypoint.getZ() < currentWayPoint.getZ() && currentGradient != Gradient.DOWN) {
@@ -234,27 +236,12 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 
 			// on entering a building
 			// =======================
-			for (Graphic building : buildings) {
-				try {
-					Polyline tmp = new Polyline();
-					tmp.addSegment(segment, true);
-					if (GeometryEngine.crosses(building.getGeometry(), tmp, SpatialReference.create(Constants.SPARTIAL_REF_NAD83))) {
-						System.out.println(i + "crosses " + (String) building.getAttributeValue(Constants.QUERY_BUILDING_COL_ID));
-
-						newSegmentLocation = (String) building.getAttributeValue(Constants.QUERY_BUILDING_COL_ID);
-
-						// filter ICT -> MS -> ICT out (it happens sometimes that you enter new building before you leave the old one)
-						if (!newSegmentLocation.equals(oldSegmentLocation) && !newSegmentLocation.equals(oldoldSegmentLocation)) {
-							setNewSegment = true;
-							newSegmentText = "entering building " + newSegmentLocation;
-						}
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			if (!currentSegmentLocation.equals(newSegmentLocation)) {
+				setNewSegment = true;
+				newSegmentText = "entering building " + newSegmentLocation;
 			}
 
-			System.out.println(currentWayPoint.getZ() + " - " + currentGradient);
+			System.out.println(currentWayPoint.getZ() + " - " + currentGradient + " - loc " + currentSegmentLocation);
 
 			if (setNewSegment) {
 				System.out.println("->split");
@@ -366,12 +353,11 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 	 * @param segment
 	 * @return string of containing building, if no building is containing the segment "outdoor" will be returned
 	 */
-	private static String determineContainingBuilding(Graphic[] buildings, Segment segment) {
+	private static String determineContainingBuilding(Graphic[] buildings, Point segment) {
 		for (Graphic building : buildings) {
 			try {
-				Polyline tmp = new Polyline();
-				tmp.addSegment(segment, true);
-				if (GeometryEngine.contains(building.getGeometry(), tmp, SpatialReference.create(Constants.SPARTIAL_REF_NAD83))) {
+
+				if (GeometryEngine.contains(building.getGeometry(), segment, SpatialReference.create(Constants.SPARTIAL_REF_NAD83))) {
 					return (String) building.getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_BUILDING_COL_ID);
 				}
 			} catch (Exception e) {

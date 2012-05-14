@@ -11,6 +11,7 @@ import android.widget.ListView;
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.activities.adapter.QuicklinkDataset;
 import com.uofc.roomfinder.android.activities.adapter.QuicklinksListAdapter;
+import com.uofc.roomfinder.entities.routing.RoutePoint;
 
 public class Quicklinks extends ListActivity {
 
@@ -35,19 +36,22 @@ public class Quicklinks extends ListActivity {
 
 	@Override
 	public void onListItemClick(ListView parent, View v, int position, long id) {
-		//create new intent with data to return (building name + room number, should look like 'ICT550')
+		// create new intent with data to return (building name + room number, should look like 'ICT550')
 		Intent newintent = new Intent();
-		newintent.putExtra("room", data.get(position).getDestBuilding()+data.get(position).getDestRoom());
-		
-		//get parent intent
+		newintent.putExtra("roomX", data.get(position).getDestination().getX());
+		newintent.putExtra("roomY", data.get(position).getDestination().getY());
+		newintent.putExtra("roomZ", data.get(position).getDestination().getZ());
+		newintent.putExtra("roomText", data.get(position).getTitle());
+
+		// get parent intent
 		if (getParent() == null) {
-		    setResult(Activity.RESULT_OK, newintent);
+			setResult(Activity.RESULT_OK, newintent);
 		} else {
-		    getParent().setResult(Activity.RESULT_OK, newintent);
+			getParent().setResult(Activity.RESULT_OK, newintent);
 		}
-		
-		//and quit this activity
-		finish();		
+
+		// and quit this activity
+		finish();
 	}
 
 	/**
@@ -60,18 +64,29 @@ public class Quicklinks extends ListActivity {
 
 		title = "Tim Horton's @ MacHall";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, "MH", "214");
+		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700960.5776, 5662459.9725, 8.0));
 		data.add(dataset);
 
 		title = "Good Earth @ ICT";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, "MH", "214");
+		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700994.0805, 5662656.6906, 1));
 		data.add(dataset);
 
 		title = "Fitness Centre";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, "MH", "214");
+		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700788.8957, 5662392.7682, 4));
 		data.add(dataset);
+
+		title = "Olympic Oval";
+		imageId = R.drawable.plus;
+		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700674.5955, 5662318.9493, 4));
+		data.add(dataset);
+		
+		title = "Rogers Store";
+		imageId = R.drawable.plus;
+		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(701081.4262,5662560.9774, 4));
+		data.add(dataset);
+		
 
 	}
 

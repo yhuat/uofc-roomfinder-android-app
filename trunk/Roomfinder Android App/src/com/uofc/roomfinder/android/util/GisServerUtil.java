@@ -55,7 +55,12 @@ public class GisServerUtil {
 	}
 
 	/**
+	 * initiates the route querying
+	 * 
 	 * @param result
+	 * @param building
+	 * @param room
+	 * @param impedance
 	 */
 	public static void createRoute(FeatureSet result, String building, String room, String impedance) {
 		System.out.println("cr" + impedance);
@@ -79,6 +84,27 @@ public class GisServerUtil {
 		// set destination to data model
 		DataModel.getInstance().setDestinationPoint(routeEnd);
 		DataModel.getInstance().setDestinationText("Route to " + building + " " + room);
+	}
+	
+	/**
+	 * @param result
+	 */
+	public static void createRoute(RoutePoint endPoint, String destination) {
+		String impedance = "Length";
+
+		// get current pos
+		Point startPoint = DataModel.getInstance().getCurrentPositionNAD83();
+
+		// build destination point for route
+		RoutePoint routeStart = new RoutePoint(startPoint.getX(), startPoint.getY());
+		RoutePoint routeEnd = new RoutePoint(endPoint.getX(), endPoint.getY(), endPoint.getZ());
+
+		// start async thread for downloading route
+		new RouteDownloader().execute(routeStart, routeEnd, impedance);
+		
+		// set destination to data model
+		DataModel.getInstance().setDestinationPoint(routeEnd);
+		DataModel.getInstance().setDestinationText("Route to " + destination);
 	}
 
 	/**
