@@ -6,6 +6,7 @@ import android.content.Context;
 public class RoomFinderApplication extends Application {
 	private static Context context;
 
+	@Override
 	public void onCreate() {
 		super.onCreate();
 		RoomFinderApplication.context = getApplicationContext();

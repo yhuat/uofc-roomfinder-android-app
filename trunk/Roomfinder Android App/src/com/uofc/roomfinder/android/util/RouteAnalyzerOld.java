@@ -7,10 +7,10 @@ import com.esri.core.geometry.Line;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.Polyline;
 import com.esri.core.geometry.Segment;
+import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.entities.routing.Gradient;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RouteFeature;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
 public class RouteAnalyzerOld {
@@ -55,7 +55,7 @@ public class RouteAnalyzerOld {
 	 */
 	private static void analyzeSegments(Route route) {
 		System.out.println("segment splitting in progress");
-		List<RoutePoint> path = route.getPath();
+		List<Point3D> path = route.getPath();
 
 		Polyline line;
 		Segment segment = new Line();
@@ -65,8 +65,8 @@ public class RouteAnalyzerOld {
 		boolean setNewSegment = false;
 		int lastSegmentPathPoint = 0;
 
-		RoutePoint nextWaypoint = null;
-		RoutePoint currentWayPoint = null;
+		Point3D nextWaypoint = null;
+		Point3D currentWayPoint = null;
 
 		line = new Polyline();
 		for (int i = 0; i < path.size() - 1; i++) {
@@ -145,7 +145,7 @@ public class RouteAnalyzerOld {
 	 */
 	private static void analyzeWayPoints(Route route) {
 		List<RouteFeature> features = route.getRouteFeatures();
-		List<RoutePoint> path = route.getPath();
+		List<Point3D> path = route.getPath();
 		Vector<Integer> waypoints = new Vector<Integer>();
 
 		// set waypoints to the route (got from the NAServer as directions)

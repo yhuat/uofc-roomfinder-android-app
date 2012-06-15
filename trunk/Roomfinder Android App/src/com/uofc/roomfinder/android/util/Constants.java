@@ -13,6 +13,8 @@ public class Constants {
 	// services hosted by the UofC
 	public final static String UOFC_ARCGIS_SERVER_URL = "http://136.159.24.32/ArcGIS/rest/services";
 	public final static String MAPSERVER_BUILDINGS_URL = UOFC_ARCGIS_SERVER_URL + "/Buildings/MapServer";
+	public final static String MAPSERVER_ROOMS_URL = UOFC_ARCGIS_SERVER_URL + "/Rooms/Rooms/MapServer";
+	public final static String MAPSERVER_AERIAL_URL = UOFC_ARCGIS_SERVER_URL + "/Imagery/TrueOrtho2011b_cached/MapServer";
 	public final static String MAPSERVER_ROOM_QUERY_URL = UOFC_ARCGIS_SERVER_URL + "/Rooms/Rooms/MapServer/111";
 
 	public final static String QUERY_ROOM_COL_RM_ID = "SDE.DBO.Building_Room.RM_ID";
@@ -33,6 +35,7 @@ public class Constants {
 	public final static String ROOMFINDER_SERVER_URL = "http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest";
 	public final static String REST_ANNOTATION_BUILDINGS_URL = ROOMFINDER_SERVER_URL + "/annotation/cat/buildings";
 	public final static String REST_CONTACTS_URL = ROOMFINDER_SERVER_URL + "/contact/name/";
+	public final static String REST_WIFI_LOCATION_URL = ROOMFINDER_SERVER_URL + "/location";
 
 	public final static int SPARTIAL_REF_NAD83 = 26911;
 	public final static int SPARTIAL_REF_WGS84 = 4326;

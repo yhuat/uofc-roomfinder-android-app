@@ -6,14 +6,21 @@ package com.uofc.roomfinder.android;
 import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_WGS84;
 import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
 
+import java.util.Date;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.net.wifi.WifiManager;
+
 import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 
 import com.uofc.roomfinder.android.activities.MapActivity;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
+import com.uofc.roomfinder.android.util.LocationHandler;
+import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.entities.routing.Route;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
 
 /**
  * @author benjaminlautenschlaeger
@@ -23,19 +30,34 @@ public class DataModel {
 
 	private static DataModel instance = null;
 
+	// location stuff
+	LocationHandler locationHandler;
 	Point currentPositionWgs84;
 
-	int currentSegmentStart; // the current waypoint of the displayed route to start with
+	// gps
+	Point3D gpsPosition;
+	double gpsAccuracy;
+	Date gpsTimestamp;
 
+	// wifi
+	Point3D wifiPosition;
+	Date wifiTimestamp;
+
+	// wifi stuff
+	private WifiManager wifi;
+	private BroadcastReceiver receiver;
+
+	// map stuff
 	MapActivity mapActivity;
 	Route route;
-
-	RoutePoint destinationPoint;
+	Point3D destinationPoint;
 	String destinationText;
+	int currentSegmentStart; // the current waypoint of the displayed route to start with
 
 	// constructor
 	protected DataModel() {
 		currentSegmentStart = 0;
+		wifi = (WifiManager) RoomFinderApplication.getAppContext().getSystemService(Context.WIFI_SERVICE);
 	}
 
 	// singleton
@@ -48,6 +70,9 @@ public class DataModel {
 
 	// getter&setter
 	public Point getCurrentPositionWGS84() {
+		currentPositionWgs84 = new Point(this.locationHandler.getCurrentLocation().getLongitude(), this.locationHandler.getCurrentLocation().getLatitude(),
+				this.locationHandler.getCurrentLocation().getAltitude());
+
 		return currentPositionWgs84;
 	}
 
@@ -56,6 +81,8 @@ public class DataModel {
 	}
 
 	public Point getCurrentPositionNAD83() {
+		currentPositionWgs84 = getCurrentPositionWGS84();
+
 		Geometry nad83 = CoordinateUtil.transformGeometryToNAD83(currentPositionWgs84, SpatialReference.create(SPARTIAL_REF_WGS84));
 		return CoordinateUtil.getCenterCoordinateOfGeometry(nad83);
 	}
@@ -93,18 +120,18 @@ public class DataModel {
 		this.route = route;
 	}
 
-	public RoutePoint getDestinationPoint() {
+	public Point3D getDestinationPoint() {
 		return destinationPoint;
 	}
 
-	public RoutePoint getDestinationAsWgs84() {
+	public Point3D getDestinationAsWgs84() {
 		Geometry wgs84 = CoordinateUtil.transformGeometryToWGS84(new Point(destinationPoint.getX(), destinationPoint.getY(), destinationPoint.getZ()),
 				SpatialReference.create(SPARTIAL_REF_NAD83));
 		Point destPoint = CoordinateUtil.getCenterCoordinateOfGeometry(wgs84);
-		return new RoutePoint(destPoint.getX(), destPoint.getY(), destinationPoint.getZ());
+		return new Point3D(destPoint.getX(), destPoint.getY(), destinationPoint.getZ());
 	}
 
-	public void setDestinationPoint(RoutePoint destinationPoint) {
+	public void setDestinationPoint(Point3D destinationPoint) {
 		this.destinationPoint = destinationPoint;
 	}
 
@@ -115,5 +142,60 @@ public class DataModel {
 	public void setDestinationText(String destinationText) {
 		this.destinationText = destinationText;
 	}
+
+	public LocationHandler getLocationHandler() {
+		if (locationHandler == null) {
+			locationHandler = new LocationHandler();
+		}
+		return locationHandler;
+	}
+
+	public void setLocationHandler(LocationHandler locationHandler) {
+		this.locationHandler = locationHandler;
+	}
+
+	public WifiManager getWifiManager() {
+		return wifi;
+	}
+
+	public void setWifiManager(WifiManager wifi) {
+		this.wifi = wifi;
+	}
+
+	public Point3D getGpsPosition() {
+		return gpsPosition;
+	}
+
+	public void setGpsPosition(Point3D gpsPosition) {
+		this.gpsPosition = gpsPosition;
+		this.gpsTimestamp = new Date();
+	}
+
+	public double getGpsAccuracy() {
+		return gpsAccuracy;
+	}
+
+	public void setGpsAccuracy(double gpsAccuracy) {
+		this.gpsAccuracy = gpsAccuracy;
+	}
+
+	public Date getGpsTimestamp() {
+		return gpsTimestamp;
+	}
+
+	public Point3D getWifiPosition() {
+		return wifiPosition;
+	}
+
+	public void setWifiPosition(Point3D wifiPosition) {
+		this.wifiPosition = wifiPosition;
+		wifiTimestamp = new Date();
+	}
+
+	public Date getWifiTimestamp() {
+		return wifiTimestamp;
+	}
+
+	
 
 }

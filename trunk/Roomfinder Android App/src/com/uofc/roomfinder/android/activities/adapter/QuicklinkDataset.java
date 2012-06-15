@@ -1,6 +1,6 @@
 package com.uofc.roomfinder.android.activities.adapter;
 
-import com.uofc.roomfinder.entities.routing.RoutePoint;
+import com.uofc.roomfinder.entities.Point3D;
 
 /**
  * represents the data of one list element in the quicklinks menu
@@ -12,10 +12,10 @@ public class QuicklinkDataset {
 
 	protected int imageId;
 	protected String title;
-	private RoutePoint destination;
+	private Point3D destination;
 
 	// constructor
-	public QuicklinkDataset(int imageId, String title, RoutePoint destination) {
+	public QuicklinkDataset(int imageId, String title, Point3D destination) {
 		super();
 		this.imageId = imageId;
 		this.title = title;
@@ -23,7 +23,7 @@ public class QuicklinkDataset {
 	}
 
 	// getter & setter
-	public RoutePoint getDestination() {
+	public Point3D getDestination() {
 		return destination;
 	}
 

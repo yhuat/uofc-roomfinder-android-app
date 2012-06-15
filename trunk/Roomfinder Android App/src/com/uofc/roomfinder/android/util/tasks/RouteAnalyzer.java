@@ -22,10 +22,10 @@ import com.esri.core.tasks.ags.query.QueryTask;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.entities.routing.Gradient;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RouteFeature;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
 public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
@@ -176,7 +176,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 	 */
 	private static void analyzeSegments(Route route, Graphic[] buildings) {
 		System.out.println("segment splitting in progress");
-		List<RoutePoint> path = route.getPath();
+		List<Point3D> path = route.getPath();
 
 		Polyline line = new Polyline();
 		Segment segment = new Line();
@@ -190,8 +190,8 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 		String oldoldSegmentLocation = null; // segment before the last segment, is needed to sort out weird stuff from the naserver...
 		int lastSegmentPathPoint = 0;
 
-		RoutePoint nextWaypoint = null;
-		RoutePoint currentWayPoint = null;
+		Point3D nextWaypoint = null;
+		Point3D currentWayPoint = null;
 
 		for (int i = 0; i < path.size() - 1; i++) {
 
@@ -378,7 +378,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 	 */
 	private static void analyzeWayPoints(Route route) {
 		List<RouteFeature> features = route.getRouteFeatures();
-		List<RoutePoint> path = route.getPath();
+		List<Point3D> path = route.getPath();
 		Vector<Integer> waypoints = new Vector<Integer>();
 
 		// set waypoints to the route (got from the NAServer as directions)

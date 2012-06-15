@@ -119,5 +119,26 @@
             android:textColor="#888888"
             android:textStyle="bold" />
     </LinearLayout>
+    
+    <!-- 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/map"
+        android:layout_alignBottom="@id/map"
+        android:layout_alignRight="@id/map"
+        android:layout_marginBottom="32dp"
+        android:orientation="horizontal" >
+
+
+        <ImageButton
+            android:id="@+id/btn_ar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="6dp"
+            android:layout_marginLeft="6dp"
+            android:background="@drawable/cam"
+            android:contentDescription="@string/map_btn_text" />
+    </LinearLayout> -->
 
 </RelativeLayout>

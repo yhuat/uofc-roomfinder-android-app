@@ -21,6 +21,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
+
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.Constants;
@@ -85,30 +87,32 @@ public class SearchForm extends Activity {
 	 * return data -> building name + room number, should look like 'ICT550'
 	 */
 	private void returnToParentIntent(String buildingAndRoom) {
-
 		if (buildingAndRoom.equals(CONTACT_DOWNLOAD_ERROR)) {
-			// TODO: display err msg
-		}
-
-		Intent intent = new Intent();
-
-		// room data from method param
-		intent.putExtra("room", buildingAndRoom);
-
-		// if room search with route set impedance value to intent
-		if (getIntent().getIntExtra("requestCode", Constants.SEARCH_ROOM) == Constants.SEARCH_ROOM_WITH_ROUTE) {
-			intent.putExtra("impedance", getImpedanceAttributeBySpinnerID((int) spinnerImpedance.getSelectedItemId()));
-		}
-
-		// get parent intent to pass the queried data back to it
-		if (getParent() == null) {
-			setResult(Activity.RESULT_OK, intent);
+			InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+			imm.hideSoftInputFromWindow(inputSearch.getWindowToken(), 0);
+			Toast.makeText(SearchForm.this, "no result found", Toast.LENGTH_LONG).show();
 		} else {
-			getParent().setResult(Activity.RESULT_OK, intent);
-		}
+			// switch to parent with result
+			Intent intent = new Intent();
 
-		// and quit this activity
-		finish();
+			// room data from method param
+			intent.putExtra("room", buildingAndRoom);
+
+			// if room search with route set impedance value to intent
+			if (getIntent().getIntExtra("requestCode", Constants.SEARCH_ROOM) == Constants.SEARCH_ROOM_WITH_ROUTE) {
+				intent.putExtra("impedance", getImpedanceAttributeBySpinnerID((int) spinnerImpedance.getSelectedItemId()));
+			}
+
+			// get parent intent to pass the queried data back to it
+			if (getParent() == null) {
+				setResult(Activity.RESULT_OK, intent);
+			} else {
+				getParent().setResult(Activity.RESULT_OK, intent);
+			}
+
+			// and quit this activity
+			finish();
+		}
 	}
 
 	@Override
