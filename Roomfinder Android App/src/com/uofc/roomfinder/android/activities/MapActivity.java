@@ -17,7 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.android.map.Layer;
+import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.core.geometry.Point;
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
@@ -26,7 +26,7 @@ import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.GisServerUtil;
 import com.uofc.roomfinder.android.views.CampusMapView;
 import com.uofc.roomfinder.android.views.RouteNavigationBar;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
+import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class MapActivity extends Activity {
@@ -111,62 +111,66 @@ public class MapActivity extends Activity {
 
 		}
 
-		/*
-		 * mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
-		 * 
-		 * private static final long serialVersionUID = 1L;
-		 * 
-		 * @Override public void onStatusChanged(Object source, STATUS status) {
-		 * 
-		 * System.out.println("---Status: " + status); System.out.println("----1: " + mapView.getLayer(0)); //System.out.println("----2: " +
-		 * mapView.getLayer(1));
-		 * 
-		 * //mapView.getLayer(1).setVisible(false);
-		 * 
-		 * if (source == mapView && status == STATUS.INITIALIZED) {
-		 * 
-		 * 
-		 * 
-		 * // set location listener LocationService ls = mapView.getLocationService(); ls.setAutoPan(false); LocationListener locationListener = new
-		 * LocationListener() {
-		 * 
-		 * // Zooms to the current location when first GPS fix arrives public void onLocationChanged(Location loc) { System.out.println("onLocationChange");
-		 * 
-		 * double locy = loc.getLatitude(); double locx = loc.getLongitude(); double locz = loc.getAltitude(); float accuracy = loc.getAccuracy();
-		 * 
-		 * // TODO test locy = 51.080652; locx = -114.129195;
-		 * 
-		 * // save current position in singleton DataModel.getInstance().setCurrentPosition(new RoutePoint(locx, locy));
-		 * 
-		 * // debug print on display txtStatusBar.setText("lat: " + locy + " long: " + locx + "\nalt: " + locz + " acc: " + accuracy + "m");
-		 * 
-		 * // actualize only if accuracy is better than 300m // if (accuracy < 300) { // if (actualizing) { // actualizing = false; Point wgspoint = new
-		 * Point(locx, locy); Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP),
-		 * mapView.getSpatialReference()); Unit mapUnit = mapView.getSpatialReference().getUnit(); //System.out.println(mapUnit); double zoomWidth =
-		 * Unit.convertUnits(0.08, Unit.create(LinearUnit.Code.MILE_US), mapUnit); System.out.println(zoomWidth); Envelope zoomExtent = new Envelope(mapPoint,
-		 * zoomWidth, zoomWidth); mapView.setExtent(zoomExtent); // } }
-		 * 
-		 * @Override public void onProviderDisabled(String provider) { // TODO Auto-generated method stub System.out.println("Doh, no Location service"); }
-		 * 
-		 * @Override public void onProviderEnabled(String provider) { // TODO Auto-generated method stub
-		 * System.out.println("Yeah, we have an enabled location service");
-		 * 
-		 * }
-		 * 
-		 * @Override public void onStatusChanged(String provider, int status, Bundle extras) { // TODO Auto-generated method stub
-		 * System.out.println("location service status update");
-		 * 
-		 * } }; ls.start(); ls.setLocationListener(locationListener);
-		 * 
-		 * LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-		 * locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListener);
-		 * locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListener);
-		 * 
-		 * } } });
-		 */
-		// this.progressDialog.dismiss();
+		mapView.setOnStatusChangedListener(new OnStatusChangedListener() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onStatusChanged(Object source, STATUS status) {
+
+				// mapView.getLayer(1).setVisible(false);
+
+				if (source == mapView && status == STATUS.INITIALIZED) {
+					// set location listener
+					// LocationService ls = mapView.getLocationService();
+					// ls.setAutoPan(false);
+					// ls.start();
+					// ls.setLocationListener(DataModel.getInstance().getLocationHandler().getLocationListener());
+				}
+			}
+		});
 	}
 
+	/*
+	 * // set location listener LocationService ls = mapView.getLocationService(); ls.setAutoPan(false); LocationListener locationListener = new
+	 * LocationListener() {
+	 * 
+	 * // Zooms to the current location when first GPS fix arrives public void onLocationChanged(Location loc) { System.out.println("onLocationChange");
+	 * 
+	 * double locy = loc.getLatitude(); double locx = loc.getLongitude(); double locz = loc.getAltitude(); float accuracy = loc.getAccuracy();
+	 * 
+	 * // TODO test locy = 51.080652; locx = -114.129195;
+	 * 
+	 * // save current position in singleton DataModel.getInstance().setCurrentPosition(new RoutePoint(locx, locy));
+	 * 
+	 * // debug print on display txtStatusBar.setText("lat: " + locy + " long: " + locx + "\nalt: " + locz + " acc: " + accuracy + "m");
+	 * 
+	 * // actualize only if accuracy is better than 300m // if (accuracy < 300) { // if (actualizing) { // actualizing = false; Point wgspoint = new Point(locx,
+	 * locy); Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP), mapView.getSpatialReference());
+	 * Unit mapUnit = mapView.getSpatialReference().getUnit(); //System.out.println(mapUnit); double zoomWidth = Unit.convertUnits(0.08,
+	 * Unit.create(LinearUnit.Code.MILE_US), mapUnit); System.out.println(zoomWidth); Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
+	 * mapView.setExtent(zoomExtent); // } }
+	 * 
+	 * @Override public void onProviderDisabled(String provider) { // TODO Auto-generated method stub System.out.println("Doh, no Location service"); }
+	 * 
+	 * @Override public void onProviderEnabled(String provider) { // TODO Auto-generated method stub
+	 * System.out.println("Yeah, we have an enabled location service");
+	 * 
+	 * }
+	 * 
+	 * @Override public void onStatusChanged(String provider, int status, Bundle extras) { // TODO Auto-generated method stub
+	 * System.out.println("location service status update");
+	 * 
+	 * } }; ls.start(); ls.setLocationListener(locationListener);
+	 * 
+	 * LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+	 * locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListener);
+	 * locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListener);
+	 * 
+	 * } } });
+	 * 
+	 * // this.progressDialog.dismiss(); }
+	 */
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -180,10 +184,7 @@ public class MapActivity extends Activity {
 		System.out.println("onResume");
 	}
 
-	// getter & setter
-	public ProgressDialog getProgressDialog() {
-		return progressDialog;
-	}
+	// getter & setter public ProgressDialog getProgressDialog() { return progressDialog; }
 
 	public void setProgressDialog(ProgressDialog progressDialog) {
 		this.progressDialog = progressDialog;
@@ -229,6 +230,20 @@ public class MapActivity extends Activity {
 		int touchX = (int) event.getX() - getNavbarOffsetX();
 		int touchY = (int) event.getY() - getMapviewOffsetY();
 
+		// check if touch hit a nav bar rectangle
+		int i = 0;
+		for (Rect rect : mapNavBar.getNavbarParts()) {
+			if (rect.contains(touchX, touchY)) {
+				try {
+					MapDrawer.displayRouteSegment(i);
+					mapNavBar.setActiveElement(i);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			i++;
+		}
+
 		int eventaction = event.getAction();
 
 		switch (eventaction) {
@@ -242,20 +257,6 @@ public class MapActivity extends Activity {
 
 		case MotionEvent.ACTION_UP:
 			System.out.println("action up");
-
-			// check if touch hit a nav bar rectangle
-			int i = 0;
-			for (Rect rect : mapNavBar.getNavbarParts()) {
-				if (rect.contains(touchX, touchY)) {
-					try {
-						MapDrawer.displayRouteSegment(i);
-						mapNavBar.setActiveElement(i);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				i++;
-			}
 
 			break;
 		}
@@ -316,6 +317,15 @@ public class MapActivity extends Activity {
 				}
 			}
 			startActivity(nextScreen);
+			break;
+
+		case R.id.item_arial_toggle:
+			if (this.mapView.isArialEnabled()) {
+				this.mapView.disableArialImage();
+			} else {
+				this.mapView.enableArialImage();
+			}
+
 			break;
 		}
 		return true;
@@ -387,7 +397,7 @@ public class MapActivity extends Activity {
 				return;
 			}
 
-			GisServerUtil.createRoute(new RoutePoint(x, y, z), text);
+			GisServerUtil.createRoute(new Point3D(x, y, z), text);
 			break;
 
 		default:

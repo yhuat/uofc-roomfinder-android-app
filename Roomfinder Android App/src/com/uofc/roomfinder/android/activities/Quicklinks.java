@@ -11,7 +11,7 @@ import android.widget.ListView;
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.activities.adapter.QuicklinkDataset;
 import com.uofc.roomfinder.android.activities.adapter.QuicklinksListAdapter;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
+import com.uofc.roomfinder.entities.Point3D;
 
 public class Quicklinks extends ListActivity {
 
@@ -64,27 +64,27 @@ public class Quicklinks extends ListActivity {
 
 		title = "Tim Horton's @ MacHall";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700960.5776, 5662459.9725, 8.0));
+		dataset = new QuicklinkDataset(imageId, title, new Point3D(700960.5776, 5662459.9725, 8.0));
 		data.add(dataset);
 
 		title = "Good Earth @ ICT";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700994.0805, 5662656.6906, 1));
+		dataset = new QuicklinkDataset(imageId, title, new Point3D(700994.0805, 5662656.6906, 1));
 		data.add(dataset);
 
 		title = "Fitness Centre";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700788.8957, 5662392.7682, 4));
+		dataset = new QuicklinkDataset(imageId, title, new Point3D(700788.8957, 5662392.7682, 4));
 		data.add(dataset);
 
 		title = "Olympic Oval";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(700674.5955, 5662318.9493, 4));
+		dataset = new QuicklinkDataset(imageId, title, new Point3D(700674.5955, 5662318.9493, 4));
 		data.add(dataset);
 		
 		title = "Rogers Store";
 		imageId = R.drawable.plus;
-		dataset = new QuicklinkDataset(imageId, title, new RoutePoint(701081.4262,5662560.9774, 4));
+		dataset = new QuicklinkDataset(imageId, title, new Point3D(701081.4262,5662560.9774, 4));
 		data.add(dataset);
 		
 

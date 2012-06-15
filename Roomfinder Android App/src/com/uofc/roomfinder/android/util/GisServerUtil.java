@@ -7,7 +7,7 @@ import com.esri.core.map.Graphic;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.util.tasks.RoomQuery;
 import com.uofc.roomfinder.android.util.tasks.RouteDownloader;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
+import com.uofc.roomfinder.entities.Point3D;
 
 public class GisServerUtil {
 
@@ -75,8 +75,8 @@ public class GisServerUtil {
 		Point endPoint = CoordinateUtil.getCenterCoordinateOfGeometry(grs[0].getGeometry());
 
 		// build destination point for route
-		RoutePoint routeStart = new RoutePoint(startPoint.getX(), startPoint.getY());
-		RoutePoint routeEnd = new RoutePoint(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
+		Point3D routeStart = new Point3D(startPoint.getX(), startPoint.getY());
+		Point3D routeEnd = new Point3D(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
 
 		// start async thread for downloading route
 		new RouteDownloader().execute(routeStart, routeEnd, impedance);
@@ -89,15 +89,15 @@ public class GisServerUtil {
 	/**
 	 * @param result
 	 */
-	public static void createRoute(RoutePoint endPoint, String destination) {
+	public static void createRoute(Point3D endPoint, String destination) {
 		String impedance = "Length";
 
 		// get current pos
 		Point startPoint = DataModel.getInstance().getCurrentPositionNAD83();
 
 		// build destination point for route
-		RoutePoint routeStart = new RoutePoint(startPoint.getX(), startPoint.getY());
-		RoutePoint routeEnd = new RoutePoint(endPoint.getX(), endPoint.getY(), endPoint.getZ());
+		Point3D routeStart = new Point3D(startPoint.getX(), startPoint.getY());
+		Point3D routeEnd = new Point3D(endPoint.getX(), endPoint.getY(), endPoint.getZ());
 
 		// start async thread for downloading route
 		new RouteDownloader().execute(routeStart, routeEnd, impedance);
@@ -130,7 +130,7 @@ public class GisServerUtil {
 
 		// build destination point
 		String floorResult = (String) result.getGraphics()[0].getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_ROOM_COL_FLR_ID);
-		RoutePoint routeEnd = new RoutePoint(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
+		Point3D routeEnd = new Point3D(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
 
 		// set layer to destination point
 		DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(routeEnd);

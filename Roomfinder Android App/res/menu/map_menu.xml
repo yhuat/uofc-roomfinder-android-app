@@ -15,6 +15,10 @@
     <item
         android:id="@+id/item_ar"
         android:title="augment my reality"/>
+    
+     <item
+        android:id="@+id/item_arial_toggle"
+        android:title="toggle arial image"/>
 
     <!-- android:icon="@drawable/icon" -->
 

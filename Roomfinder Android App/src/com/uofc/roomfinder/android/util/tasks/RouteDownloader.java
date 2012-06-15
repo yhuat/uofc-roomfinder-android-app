@@ -6,8 +6,8 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.uofc.roomfinder.android.DataModel;
+import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.entities.routing.Route;
-import com.uofc.roomfinder.entities.routing.RoutePoint;
 import com.uofc.roomfinder.entities.routing.RouteStopAttributes;
 import com.uofc.roomfinder.entities.routing.RouteStopFeature;
 import com.uofc.roomfinder.util.UrlReader;
@@ -25,8 +25,8 @@ public class RouteDownloader extends AsyncTask<Object, Void, String> {
 		if (params.length != 3)
 			return null;
 
-		RoutePoint start = (RoutePoint) params[0];
-		RoutePoint destination = (RoutePoint) params[1];
+		Point3D start = (Point3D) params[0];
+		Point3D destination = (Point3D) params[1];
 		String impedanceAttribute = (String) params[2];
 
 		Route route = new Route();
@@ -35,6 +35,8 @@ public class RouteDownloader extends AsyncTask<Object, Void, String> {
 		route.getStops().getFeatures().add(new RouteStopFeature(start, new RouteStopAttributes("Start", "unnamed")));
 		route.getStops().getFeatures().add(new RouteStopFeature(destination, new RouteStopAttributes("Destination", "unnamed")));
 
+		System.out.println(getJsonRouteFromServer(route, impedanceAttribute));
+		
 		return getJsonRouteFromServer(route, impedanceAttribute);
 	}
 
@@ -89,12 +91,18 @@ public class RouteDownloader extends AsyncTask<Object, Void, String> {
 		 */
 
 		// http://192.168.1.106:8080
+		
+		//http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server
+		String url_server = "http://10.11.27.58:8080/UofC_Roomfinder_Server";
 
-		String urlToRequest = "http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest/route?x1="
+		String urlToRequest = url_server + "/rest/route?x1="
 				+ route.getStops().getFeatures().get(0).getGeometry().getX() + "&y1=" + route.getStops().getFeatures().get(0).getGeometry().getY() + "&z1="
 				+ route.getStops().getFeatures().get(0).getGeometry().getZ() + "&x2=" + route.getStops().getFeatures().get(1).getGeometry().getX() + "&y2="
 				+ route.getStops().getFeatures().get(1).getGeometry().getY() + "&z2=" + route.getStops().getFeatures().get(1).getGeometry().getZ()
 				+ "&impedance=" + impedance;
+		
+		System.out.println(urlToRequest);
+		
 		String result = UrlReader.readFromURL(urlToRequest);
 
 		return result;
