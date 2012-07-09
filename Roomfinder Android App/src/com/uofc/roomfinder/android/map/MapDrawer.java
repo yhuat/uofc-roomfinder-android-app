@@ -33,9 +33,15 @@ public class MapDrawer {
 	 */
 	public static void displayRouteSegment(int segmentIndex) throws Exception {
 		String info_text = DataModel.getInstance().getDestinationText();
+
+		// cut text so that it fits on the box
+		if (info_text.length() > 25) {
+			info_text = info_text.substring(0, 24) + "...";
+		}
+
 		info_text += " (" + (segmentIndex + 1) + "/" + DataModel.getInstance().getRoute().getRouteSegments().size() + ")";
-		info_text += "\n " + DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getLength() + "gr: "
-				+ DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getGradient();
+		info_text += "\n" + roundLength(DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getLength()) + " - "
+				+ DataModel.getInstance().getRoute().getRouteSegments().get(segmentIndex).getDescription();
 
 		// display info box on map view
 		DataModel.getInstance().getMapActivity().displayInfoBox(info_text);
@@ -53,7 +59,7 @@ public class MapDrawer {
 	 *            segment to display
 	 * @throws Exception
 	 */
-	public static void displayRouteSegment(RouteSegment segment) throws Exception {
+	private static void displayRouteSegment(RouteSegment segment) throws Exception {
 		displayRouteSegment(DataModel.getInstance().getRoute(), segment);
 	}
 
@@ -129,6 +135,7 @@ public class MapDrawer {
 		// create envelope which is a bit bigger than the route segment
 		Envelope newEnv = new Envelope(env.getCenter(), zoomWidth, zoomWidth);
 		DataModel.getInstance().getMapActivity().getMapView().setExtent(newEnv);
+		DataModel.getInstance().getMapActivity().enableNavBarLayout();
 	}
 
 	/**
@@ -201,6 +208,33 @@ public class MapDrawer {
 		pLine.queryEnvelope(env);
 
 		return env;
+	}
+
+	/**
+	 * rounds length into useful text
+	 * 
+	 * @param len
+	 * @return
+	 */
+	private static String roundLength(double len) {
+
+		String stringLength = "";
+		int part;
+
+		if (len > 1000) {
+			part = (int) (len / 1000);
+			stringLength = "" + part + "km";
+		} else if (len > 100) {
+			part = (int) (len / 100);
+			stringLength = "" + part + "00 m";
+		} else if (len > 10) {
+			part = (int) (len / 10);
+			stringLength = "" + part + "0 m";
+		} else {
+			stringLength = "< 10m";
+		}
+
+		return stringLength;
 	}
 
 }

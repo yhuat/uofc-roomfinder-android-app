@@ -29,9 +29,14 @@ public class LocationHandler {
 	private Location curLoc;
 	private Location locationAtLastDownload;
 
+	Thread backgroundWifiScanThread = null;
+
 	public LocationHandler() {
 		System.out.println("init location handler");
 		lm = (LocationManager) RoomFinderApplication.getAppContext().getSystemService(Context.LOCATION_SERVICE);
+
+		// init wifi scan thread
+		startWifiLocationScanner();
 
 		// List all providers:
 		List<String> providers = lm.getAllProviders();
@@ -126,8 +131,10 @@ public class LocationHandler {
 	 */
 	private void startWifiLocationScanner() {
 		// delete, should be in location bla
-		Thread backgroundThread = new Thread(new WifiLocationProvider());
-		backgroundThread.start();
+		if (backgroundWifiScanThread == null) {
+			backgroundWifiScanThread = new Thread(new WifiLocationProvider());
+			backgroundWifiScanThread.start();
+		}
 	}
 
 	// coarse location listener is only for the first fix
@@ -164,17 +171,24 @@ public class LocationHandler {
 
 		@Override
 		public void onLocationChanged(Location location) {
+			// logging
 			String status = "normal Location Changed: " + location.getProvider() + " lat: " + location.getLatitude() + " lon: " + location.getLongitude()
 					+ " alt: " + location.getAltitude() + " acc: " + location.getAccuracy();
+			System.out.println(status);
 
-			Log.d(TAG, status);
+			// location handling
+			//Point3D realPoint = new Point3D(-114.130308, 51.080259, 0.0); // for testing
+			Point3D realPoint = new Point3D(location.getLongitude(), location.getLatitude(), location.getAltitude());
 
-			DataModel.getInstance().setGpsPosition(new Point3D(location.getLongitude(), location.getLatitude(), location.getAltitude()));
+			DataModel.getInstance().setGpsPosition(realPoint);
 			DataModel.getInstance().setGpsAccuracy(location.getAccuracy());
-			
-			// if accuracy is lower than X -> start wifi thread! (add wifi logo)
-			Thread backgroundThread = new Thread(new WifiLocationProvider());
-			backgroundThread.start();
+
+			// if accuracy is lower than X -> start wifi thread!
+			// TODO: stop and start wifi thread based on gps accuracy
+			// at the moment wifi scanner runs all the time!
+			if (backgroundWifiScanThread == null) {
+				startWifiLocationScanner();
+			}
 
 			synchronized (curLoc) {
 				curLoc = location;

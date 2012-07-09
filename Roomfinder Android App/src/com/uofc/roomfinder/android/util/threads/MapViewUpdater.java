@@ -1,30 +1,29 @@
 package com.uofc.roomfinder.android.util.threads;
 
-import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
-import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_WGS84;
-import android.graphics.Color;
-import com.esri.core.geometry.Geometry;
-import com.esri.core.geometry.GeometryEngine;
+import android.view.View;
+
 import com.esri.core.geometry.Point;
-import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
 import com.uofc.roomfinder.android.DataModel;
-import com.uofc.roomfinder.entities.Point3D;
+import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.android.util.Constants.LocationProvider;
 
 /**
- * this thread invokes every couple of seconds the WifiScanner which invokes the indoor location processing with RSSI and trilateration
+ * this thread handles map updates
+ * 
+ * drawing points according to current position on the map <br/>
+ * + switching floor layers
  * 
  * @author benjaminlautenschlaeger
  * 
  */
 public class MapViewUpdater implements Runnable {
 
-	private final int COLOR_GPS_MARKER = Color.BLUE;
-	private final int COLOR_WIFI_MARKER = Color.GREEN;
-
 	private boolean running = true;
+
+	LocationProvider currentProvider;
 
 	@Override
 	public void run() {
@@ -32,15 +31,14 @@ public class MapViewUpdater implements Runnable {
 		while (running) {
 			try {
 				// wait before redraw
-				Thread.sleep(1000);
-				System.out.println("draw loc");
+				Thread.sleep(Constants.MAP_UPDATE_INTERVAL);
 
 				// remove everything from location graphics layer
-				// DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayerLocations().removeAll();
+				DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayerLocations().removeAll();
 
 				// draw points
-				drawGpsLocation();
-				drawWifiData();
+				drawCurrentPosition();
+				switchFloorToCurrentPos();
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -60,61 +58,56 @@ public class MapViewUpdater implements Runnable {
 	 * draws a circle on the map view with the current GPS location stored in the DataModel
 	 * 
 	 */
-	private void drawGpsLocation() {
-		// transform location into spatial reference system of map
-		SpatialReference nad83sr = SpatialReference.create(SPARTIAL_REF_NAD83);
-		SpatialReference wgs84sr = SpatialReference.create(SPARTIAL_REF_WGS84);
-
-		Point3D gpsLocation = DataModel.getInstance().getGpsPosition();
+	private void drawCurrentPosition() {
+		Point currentPos = DataModel.getInstance().getCurrentPositionNAD83();
+		currentProvider = DataModel.getInstance().getCurrentLocationProvider();
 
 		// if location is set go on, else quit
-		if (gpsLocation == null)
+		if (currentPos == null)
 			return;
-		if (gpsLocation.getX() == 0)
+		if (currentPos.getX() == 0)
 			return;
 
-		Geometry point = new Point(gpsLocation.getX(), gpsLocation.getY());
-		Geometry pointWgs84 = GeometryEngine.project(point, wgs84sr, nad83sr);
-		int gpsPointSize = (int) DataModel.getInstance().getGpsAccuracy();
+		//System.out.println("gps pos" + currentPos.getX());
 
-		Graphic graphic = new Graphic(pointWgs84, new SimpleMarkerSymbol(COLOR_GPS_MARKER, gpsPointSize, STYLE.CIRCLE));
+		Graphic graphic;
+
+		// according to location provider change color of marker
+		if (currentProvider == LocationProvider.GPS) {
+			int gpsPointSize = 15;
+			graphic = new Graphic(currentPos, new SimpleMarkerSymbol(Constants.COLOR_GPS_MARKER, gpsPointSize, STYLE.CIRCLE));
+
+		} else {
+			int wifiPointSize = 15;
+			graphic = new Graphic(currentPos, new SimpleMarkerSymbol(Constants.COLOR_WIFI_MARKER, wifiPointSize, STYLE.CIRCLE));
+
+		}
+
+		// show wifi logo
+		DataModel.getInstance().getMapActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				if (MapViewUpdater.this.currentProvider == LocationProvider.GPS) {
+					DataModel.getInstance().getMapActivity().showWifiLogo(false);
+				} else {
+					DataModel.getInstance().getMapActivity().showWifiLogo(true);
+				}
+
+			}
+		});
 
 		// add point to graphics layer or location
 		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayerLocations().addGraphic(graphic);
-
-		// // query and return the envelope of the line
-		// Envelope env = new Envelope();
-		// point.queryEnvelope(env);
 	}
 
 	/**
-	 * draws a circle on the map view with the current Wifi location stored in the DataModel
+	 * switches floor layer according to current height
 	 */
-	private void drawWifiData() {
-		// transform location into spatial reference system of map
-		SpatialReference nad83sr = SpatialReference.create(SPARTIAL_REF_NAD83);
-		SpatialReference wgs84sr = SpatialReference.create(SPARTIAL_REF_WGS84);
+	private void switchFloorToCurrentPos() {
 
-		Point3D wifiLocation = DataModel.getInstance().getWifiPosition();
-
-		// if location is set go on, else quit
-		if (wifiLocation == null || wifiLocation.getX() == 0)
-			return;
-
-		Geometry point = new Point(wifiLocation.getX(), wifiLocation.getY());
-		Geometry pointWgs84 = GeometryEngine.project(point, wgs84sr, nad83sr);
-		int gpsPointSize = (int) DataModel.getInstance().getGpsAccuracy();
-
-		Graphic graphic = new Graphic(pointWgs84, new SimpleMarkerSymbol(COLOR_WIFI_MARKER, gpsPointSize, STYLE.CIRCLE));
-
-		// add point to graphics layer or location
-		DataModel.getInstance().getMapActivity().getMapView().getGraphicsLayerLocations().addGraphic(graphic);
-
-		// switch floor layer (if gps accuracy is good, device is outside -> ground layer)
-		if (DataModel.getInstance().getGpsAccuracy() > 20) {
-			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(wifiLocation);
-		} else {
-			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(0);
+		if (DataModel.getInstance().isUpdateFloorToCurrentPos()) {
+			double currentHeight = DataModel.getInstance().getCurrentHeight();
+			DataModel.getInstance().getMapActivity().getMapView().setActiveHeight(currentHeight);
 		}
+
 	}
 }

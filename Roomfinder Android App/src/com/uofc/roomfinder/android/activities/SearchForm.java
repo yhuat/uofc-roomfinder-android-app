@@ -43,6 +43,7 @@ import com.uofc.roomfinder.util.UrlReader;
  */
 public class SearchForm extends Activity {
 
+	ProgressDialog dialog;
 	private static final String CONTACT_DOWNLOAD_ERROR = "error";
 
 	EditText inputSearch;
@@ -88,9 +89,10 @@ public class SearchForm extends Activity {
 	 */
 	private void returnToParentIntent(String buildingAndRoom) {
 		if (buildingAndRoom.equals(CONTACT_DOWNLOAD_ERROR)) {
-			InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+			InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 			imm.hideSoftInputFromWindow(inputSearch.getWindowToken(), 0);
 			Toast.makeText(SearchForm.this, "no result found", Toast.LENGTH_LONG).show();
+			dialog.dismiss();
 		} else {
 			// switch to parent with result
 			Intent intent = new Intent();
@@ -162,7 +164,7 @@ public class SearchForm extends Activity {
 	 */
 	private class LoadContactsTask extends AsyncTask<String, Void, String> {
 
-		ProgressDialog dialog;
+		
 
 		@Override
 		protected void onPreExecute() {
@@ -174,12 +176,15 @@ public class SearchForm extends Activity {
 		protected String doInBackground(String... params) {
 			System.out.println("contacts query url: " + Constants.REST_CONTACTS_URL + params[0]);
 
+			System.out.println("result: ");
 			// send query to REST service (which querys the public UofC LDAP directory)
 			return UrlReader.readFromURL(Constants.REST_CONTACTS_URL + params[0]);
 		}
 
 		@Override
 		protected void onPostExecute(String jsonResponse) {
+			System.out.println("result: " + jsonResponse);
+
 			// exit condition 1
 			if (jsonResponse == null) {
 				returnToParentIntent(CONTACT_DOWNLOAD_ERROR);
@@ -194,6 +199,7 @@ public class SearchForm extends Activity {
 				returnToParentIntent(CONTACT_DOWNLOAD_ERROR);
 				return;
 			}
+			System.out.println("contact size: " + contacts.size());
 
 			// 0 result -> display: no result found
 			if (contacts.size() == 0) {
@@ -218,6 +224,7 @@ public class SearchForm extends Activity {
 
 			} else {
 				// multiple results -> show list
+				System.out.println("multiple");
 
 				// dismiss keyboard
 				InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -234,14 +241,21 @@ public class SearchForm extends Activity {
 					String strContact = contact.getCommonName();
 					String firstLine = strContact;
 					String secondLine = "";
-					String thirdLine = contact.getRoomNumber().get(0);
+					String thirdLine = "";
+
+					if (contact.getRoomNumber().size() > 0)
+						firstLine += " (" + contact.getRoomNumber().get(0) + ")";
 
 					if (contact.getTelephoneNumbers().size() > 0) {
-						secondLine += "tel: " + contact.getTelephoneNumbers().get(0);
+						secondLine += "Phone: " + contact.getTelephoneNumbers().get(0);
+					}
 
-						if (contact.getEmails().size() > 0) {
-							secondLine += " / email: " + contact.getEmails().get(0);
-						}
+					if (contact.getEmails().size() > 0) {
+						thirdLine += "Email: " + contact.getEmails().get(0);
+					}
+					
+					if (strContact == null){
+						firstLine = "Room " + contact.getRoomNumber().get(0);
 					}
 
 					// each row in result list has three lines

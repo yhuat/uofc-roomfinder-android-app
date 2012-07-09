@@ -1,13 +1,17 @@
 package com.uofc.roomfinder.android.views;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISDynamicMapServiceLayer;
 import com.esri.android.map.ags.ArcGISLayerInfo;
 import com.esri.core.geometry.Envelope;
+import com.esri.core.renderer.SimpleRenderer;
+import com.esri.core.symbol.SimpleFillSymbol;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.threads.MapViewUpdater;
 import com.uofc.roomfinder.entities.Point3D;
@@ -22,7 +26,7 @@ import com.uofc.roomfinder.util.Util;
  */
 public class CampusMapView extends MapView {
 
-	private static final int BUILDING_LAYER_INDEX = 0;
+	private static final int BUILDING_LAYER_INDEX = 1;
 
 	GraphicsLayer graphicsLayer;
 	GraphicsLayer graphicsLayerLocations;
@@ -62,18 +66,20 @@ public class CampusMapView extends MapView {
 		// this.aerialLayer.setOpacity(0.8f);
 		// this.addLayer(this.aerialLayer);
 
-		// layer for rooms
-		this.roomLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_ROOMS_URL);
-		this.roomLayer.setVisible(false);
-		this.addLayer(this.roomLayer);
-
 		// layer for buildings
 		this.buildingLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_BUILDINGS_URL);
 		this.buildingLayer.setOpacity(0.4f);
 		this.addLayer(this.buildingLayer);
 
+		// layer for rooms
+		this.roomLayer = new ArcGISDynamicMapServiceLayer(Constants.MAPSERVER_ROOMS_URL);
+		this.roomLayer.setVisible(false);
+		this.addLayer(this.roomLayer);
+
 		// graphics layer for routes and POIs
 		graphicsLayer = new GraphicsLayer();
+		SimpleRenderer sr = new SimpleRenderer(new SimpleFillSymbol(Color.RED));
+		graphicsLayer.setRenderer(sr);
 		this.addLayer(graphicsLayer);
 
 		// graphics layer for location points
@@ -98,7 +104,8 @@ public class CampusMapView extends MapView {
 			}
 		}
 
-		// display ground layer on initail load
+		// display ground layer on initial load
+		this.activeFloor = "01";
 		displayLayer("01");
 
 		// init map drawer thread (draws current location on map view)
@@ -202,5 +209,12 @@ public class CampusMapView extends MapView {
 	public GraphicsLayer getGraphicsLayerLocations() {
 		return graphicsLayerLocations;
 	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		System.out.println("map touch");
+		return false;
+	}
+	
 
 }

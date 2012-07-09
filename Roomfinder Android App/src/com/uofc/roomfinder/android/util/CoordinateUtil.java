@@ -6,6 +6,10 @@ import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
+import com.esri.core.symbol.SimpleMarkerSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
+import com.uofc.roomfinder.android.DataModel;
+import com.uofc.roomfinder.entities.Point3D;
 
 import static com.uofc.roomfinder.android.util.Constants.*;
 
@@ -91,9 +95,8 @@ public class CoordinateUtil {
 	}
 
 	/**
-	 * determine the z-coordinate with the help of the floor_id
-	 * assume each floor has the height of 4m 
-	 * (same assumption was made when designing the network data sets)
+	 * determine the z-coordinate with the help of the floor_id assume each floor has the height of 4m (same assumption was made when designing the network data
+	 * sets)
 	 * 
 	 * @param floor
 	 * @return z-coordinate
@@ -144,6 +147,28 @@ public class CoordinateUtil {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * projects a nad83 point into a wgs84 point
+	 * 
+	 * @param nad83Point
+	 * @return
+	 */
+	public static Point3D transformToWGS84(Point3D nad83Point) {
+		// transform location into spatial reference system of map
+		SpatialReference nad83sr = SpatialReference.create(SPARTIAL_REF_NAD83);
+		SpatialReference wgs84sr = SpatialReference.create(SPARTIAL_REF_WGS84);
+
+		// if location is set go on, else quit
+		if (nad83Point == null || nad83Point.getX() == 0)
+			return null;
+
+		Point point = new Point(nad83Point.getX(), nad83Point.getY());
+		Point pointWgs84 = (Point) GeometryEngine.project(point, nad83sr, wgs84sr);
+
+		return new Point3D(pointWgs84.getX(), pointWgs84.getY());
+
 	}
 
 }
