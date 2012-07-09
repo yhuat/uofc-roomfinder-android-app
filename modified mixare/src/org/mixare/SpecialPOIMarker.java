@@ -35,12 +35,12 @@ import android.location.Location;
  * @author hannes
  * 
  */
-public class POIMarker extends Marker {
+public class SpecialPOIMarker extends Marker {
 
 	public static final int MAX_OBJECTS = 20;
 	public static final int OSM_URL_MAX_OBJECTS = 5;
 
-	public POIMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource) {
+	public SpecialPOIMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource) {
 		super(title, latitude, longitude, altitude, URL, datasource);
 
 	}
@@ -102,19 +102,13 @@ public class POIMarker extends Marker {
 		textBlock = new TextObj(textStr, 28, 250, dw, underline);
 
 		if (isVisible) {
-			// based on the distance set the colour
-			if (distance < 100.0) {
-				textBlock.setBgColor(Color.argb(180, 52, 52, 52));
-				textBlock.setBorderColor(Color.rgb(255, 104, 91));
-			} else {
-				textBlock.setBgColor(Color.argb(180, 0, 0, 0));
-				textBlock.setBorderColor(Color.rgb(255, 255, 255));
-			}
-			// dw.setColor(DataSource.getColor(type));
+			//always red
+			textBlock.setBgColor(Color.argb(180,52, 52, 52));
+			textBlock.setBorderColor(Color.rgb(255, 104, 91));
 
 			float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y, signMarker.x, signMarker.y);
 			txtLab.prepare(textBlock);
-			dw.setStrokeWidth(1f);
+			dw.setStrokeWidth(3f);
 			dw.setFill(true);
 			// dw.paintObjectBottom(txtLab, dw.getWidth()/2 - txtLab.getWidth() / 2, (float) (dw.getHeight() * 0.75), currentAngle + 90, 1);
 			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + maxHeight, currentAngle + 90, 1);

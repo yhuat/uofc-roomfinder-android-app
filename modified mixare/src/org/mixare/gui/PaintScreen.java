@@ -21,6 +21,7 @@ package org.mixare.gui;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -90,16 +91,22 @@ public class PaintScreen {
 	}
 
 	public void paintRoundedRect(float x, float y, float width, float height) {
-		//rounded edges. patch by Ignacio Avellino
+		// rounded edges. patch by Ignacio Avellino
 		RectF rect = new RectF(x, y, x + width, y + height);
 		canvas.drawRoundRect(rect, 15F, 15F, paint);
 	}
-	
-	public void paintBitmap(Bitmap bitmap, float left, float top) {
+
+	public void paintBitmap(Bitmap bitmap, float left, float top, float rotation) {
+
+		Matrix matrix = new Matrix();
+		matrix.postRotate(rotation);
+		bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
 		canvas.drawBitmap(bitmap, left, top, paint);
+		// canvas.rotate(rotation);
 	}
-	
-	public void paintPath(Path path,float x, float y, float width, float height, float rotation, float scale) {
+
+	public void paintPath(Path path, float x, float y, float width, float height, float rotation, float scale) {
 		canvas.save();
 		canvas.translate(x + width / 2, y + height / 2);
 		canvas.rotate(rotation);
@@ -118,8 +125,17 @@ public class PaintScreen {
 		canvas.drawText(text, x, y, paint);
 	}
 
-	public void paintObj(ScreenObj obj, float x, float y, float rotation,
-			float scale) {
+	public void paintObj(ScreenObj obj, float x, float y, float rotation, float scale) {
+		canvas.save();
+		canvas.translate(x + obj.getWidth() / 2, y + obj.getHeight() / 2);
+		canvas.rotate(rotation);
+		canvas.scale(scale, scale);
+		canvas.translate(-(obj.getWidth() / 2), -(obj.getHeight() / 2));
+		obj.paint(this);
+		canvas.restore();
+	}
+
+	public void paintObjectBottom(ScreenObj obj, float x, float y, float rotation, float scale) {
 		canvas.save();
 		canvas.translate(x + obj.getWidth() / 2, y + obj.getHeight() / 2);
 		canvas.rotate(rotation);

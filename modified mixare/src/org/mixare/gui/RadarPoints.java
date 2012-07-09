@@ -21,8 +21,6 @@ package org.mixare.gui;
 import org.mixare.DataView;
 import org.mixare.Marker;
 import org.mixare.data.DataHandler;
-import org.mixare.data.DataSource;
-
 import android.graphics.Color;
 
 /** Takes care of the small radar in the top left corner and of its points
@@ -41,6 +39,7 @@ public class RadarPoints implements ScreenObj {
 	/** Color */
 	static int radarColor = Color.argb(0, 0, 0, 200);
 	
+	@Override
 	public void paint(PaintScreen dw) {
 		/** radius is in KM. */
 		range = view.getRadius() * 1000;
@@ -71,11 +70,13 @@ public class RadarPoints implements ScreenObj {
 	}
 
 	/** Width on screen */
+	@Override
 	public float getWidth() {
 		return RADIUS * 2;
 	}
 
 	/** Height on screen */
+	@Override
 	public float getHeight() {
 		return RADIUS * 2;
 	}

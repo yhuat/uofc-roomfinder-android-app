@@ -82,7 +82,7 @@ abstract public class Marker implements Comparable<Marker> {
 		}
 		this.datasource = datasource;
 		
-		this.ID=datasource.getTypeId()+"##"+title;
+		this.ID=datasource.getTypeId()+"##"+title+longitude;
 		
 	}
 	

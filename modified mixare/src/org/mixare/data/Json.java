@@ -19,32 +19,37 @@
 package org.mixare.data;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.mixare.FriendMarker;
+import org.mixare.GraffitiMarker;
 import org.mixare.Marker;
 import org.mixare.MixContext;
 import org.mixare.MixView;
 import org.mixare.NavigationMarker;
 import org.mixare.POIMarker;
 import org.mixare.SocialMarker;
+import org.mixare.SpecialPOIMarker;
 
+import android.graphics.Color;
 import android.util.Log;
+
 /**
- * This class can compose a list of markers. The markers are
- * made by other methods in the class, which take information
- * from multiple sources.
+ * This class can compose a list of markers. The markers are made by other methods in the class, which take information from multiple sources.
  */
 public class Json extends DataHandler {
 
 	public static final int MAX_JSON_OBJECTS = 1000;
 
-	public List<Marker> load(JSONObject root, DataSource datasource) {
+	public List<Marker> load(JSONObject root, DataSource datasource, MixContext ctx) {
 		JSONObject jo = null;
 		JSONArray dataArray = null;
 		List<Marker> markers = new ArrayList<Marker>();
@@ -59,8 +64,7 @@ public class Json extends DataHandler {
 
 			if (dataArray != null) {
 
-				Log.i(MixView.TAG, "processing " + datasource.getType()
-						+ " JSON Data Array");
+				Log.i(MixView.TAG, "processing " + datasource.getType() + " JSON Data Array");
 				int top = Math.min(MAX_JSON_OBJECTS, dataArray.length());
 
 				for (int i = 0; i < top; i++) {
@@ -75,13 +79,13 @@ public class Json extends DataHandler {
 						ma = processWikipediaJSONObject(jo, datasource);
 						break;
 					case MIXARE:
-						default:
-						ma = processMixareJSONObject(jo, datasource);
+					default:
+						ma = processMixareJSONObject(jo, datasource, ctx);
 						break;
 					}
 					if (ma != null)
 						markers.add(ma);
-					System.out.println(markers.size() + " markers loaded");
+					// System.out.println(markers.size() + " markers loaded");
 				}
 			}
 		} catch (JSONException e) {
@@ -90,8 +94,7 @@ public class Json extends DataHandler {
 		return markers;
 	}
 
-	public Marker processTwitterJSONObject(JSONObject jo, DataSource datasource)
-			throws NumberFormatException, JSONException {
+	public Marker processTwitterJSONObject(JSONObject jo, DataSource datasource) throws NumberFormatException, JSONException {
 		Marker ma = null;
 		if (jo.has("geo")) {
 			Double lat = null, lon = null;
@@ -109,8 +112,7 @@ public class Json extends DataHandler {
 				// ÜT: 12.34,56.78
 				// 12.34,56.78
 
-				Pattern pattern = Pattern
-						.compile("\\D*([0-9.]+),\\s?([0-9.]+)");
+				Pattern pattern = Pattern.compile("\\D*([0-9.]+),\\s?([0-9.]+)");
 				Matcher matcher = pattern.matcher(jo.getString("location"));
 
 				if (matcher.find()) {
@@ -120,71 +122,81 @@ public class Json extends DataHandler {
 			}
 			if (lat != null) {
 				Log.v(MixView.TAG, "processing Twitter JSON object");
-				String user=jo.getString("from_user");
-				String url="http://twitter.com/"+user;
-				
-				ma = new SocialMarker(
-						user+": "+jo.getString("text"), 
-						lat, 
-						lon, 
-						0, url, 
-						datasource);
+				String user = jo.getString("from_user");
+				String url = "http://twitter.com/" + user;
+
+				ma = new SocialMarker(user + ": " + jo.getString("text"), lat, lon, 0, url, datasource);
 			}
 		}
 		return ma;
 	}
 
-	public Marker processMixareJSONObject(JSONObject jo, DataSource datasource) throws JSONException {
+	public Marker processMixareJSONObject(JSONObject jo, DataSource datasource, MixContext ctx) throws JSONException {
 
 		Marker ma = null;
-		if (jo.has("title") && jo.has("lat") && jo.has("lng")
-				&& jo.has("elevation")) {
+		if (jo.has("title") && jo.has("lat") && jo.has("lng") && jo.has("elevation")) {
 
 			Log.v(MixView.TAG, "processing Mixare JSON object");
-			String link=null;
-	
-			if(jo.has("has_detail_page") && jo.getInt("has_detail_page")!=0 && jo.has("webpage"))
-				link=jo.getString("webpage");
-			
-        	if(datasource.getDisplay() == DataSource.DISPLAY.CIRCLE_MARKER) {
-        		Log.v(MixView.TAG, "adding Mixare JSON object");
-        		ma = new POIMarker(
-					unescapeHTML(jo.getString("title"), 0), 
-					jo.getDouble("lat"), 
-					jo.getDouble("lng"), 
-					jo.getDouble("elevation"), 
-					link, 
-					datasource);
-        	} else {
-        		Log.v(MixView.TAG, "adding Mixare JSON object (else)");
-            	ma = new NavigationMarker(
-            			unescapeHTML(jo.getString("title"), 0), 
-        				jo.getDouble("lat"), 
-        				jo.getDouble("lng"), 
-        				0, 
-        				link, 
-        				datasource);
-        	}
+			String link = null;
+
+			if (jo.has("has_detail_page") && jo.getInt("has_detail_page") != 0 && jo.has("webpage"))
+				link = jo.getString("webpage");
+
+			if (jo.has("type")) {
+				// jo.getDouble("elevation")
+
+				if (jo.getString("type").equals("POI")) {
+					System.out.println("create marker poi: " + jo.getString("title") + "ele: " + jo.getDouble("elevation"));
+					ma = new POIMarker(unescapeHTML(jo.getString("title"), 0), jo.getDouble("lat"), jo.getDouble("lng"), 0, link, datasource);
+				} else if (jo.getString("type").equals("SPECIAL_POI")) {
+					System.out.println("create marker special poi");
+					ma = new SpecialPOIMarker(unescapeHTML(jo.getString("title").replace("Route to ", ""), 0), jo.getDouble("lat"), jo.getDouble("lng"), 0, link, datasource);
+				} else if (jo.getString("type").equals("FRIEND")) {
+					System.out.println("create marker friend");
+					ma = new FriendMarker(unescapeHTML(jo.getString("title"), 0), jo.getDouble("lat"), jo.getDouble("lng"), 0, link, datasource, ctx);
+				} else if (jo.getString("type").equals("GRAFFITI")) {
+					System.out.println("create marker graffiti");
+					ma = new GraffitiMarker(unescapeHTML(jo.getString("title"), 0), jo.getDouble("lat"), jo.getDouble("lng"), 0, link, datasource, Json.getRandomGraffitiColor());
+				} else if (jo.getString("type").equals("ARROW")) {
+					System.out.println("create marke arrow");
+					ma = new NavigationMarker(unescapeHTML(jo.getString("title"), 0), jo.getDouble("lat"), jo.getDouble("lng"), 0, link, datasource);
+				}
+			} else {
+
+			}
+
+			// if(!(datasource.getDisplay() == DataSource.DISPLAY.CIRCLE_MARKER)) {
+			// Log.v(MixView.TAG, "adding Mixare JSON object");
+			// ma = new POIMarker(
+			// unescapeHTML(jo.getString("title"), 0),
+			// jo.getDouble("lat"),
+			// jo.getDouble("lng"),
+			// jo.getDouble("elevation"),
+			// link,
+			// datasource);
+			// } else {
+			// Log.v(MixView.TAG, "adding Mixare JSON object (else)");
+			// ma = new NavigationMarker(
+			// unescapeHTML(jo.getString("title"), 0),
+			// jo.getDouble("lat"),
+			// jo.getDouble("lng"),
+			// 0,
+			// link,
+			// datasource);
+			// }
 		}
 		return ma;
 	}
 
-	public Marker processWikipediaJSONObject(JSONObject jo, DataSource datasource)
-			throws JSONException {
+	public Marker processWikipediaJSONObject(JSONObject jo, DataSource datasource) throws JSONException {
 
 		Marker ma = null;
-		if (jo.has("title") && jo.has("lat") && jo.has("lng")
-				&& jo.has("elevation") && jo.has("wikipediaUrl")) {
+		if (jo.has("title") && jo.has("lat") && jo.has("lng") && jo.has("elevation") && jo.has("wikipediaUrl")) {
 
 			Log.v(MixView.TAG, "processing Wikipedia JSON object");
-	
-			ma = new POIMarker(
-					unescapeHTML(jo.getString("title"), 0), 
-					jo.getDouble("lat"), 
-					jo.getDouble("lng"), 
-					jo.getDouble("elevation"), 
-					"http://"+jo.getString("wikipediaUrl"), 
-					datasource);
+
+			ma = new POIMarker(unescapeHTML(jo.getString("title"), 0), jo.getDouble("lat"), jo.getDouble("lng"), jo.getDouble("elevation"), "http://"
+					+ jo.getString("wikipediaUrl"), datasource);
 		}
 		return ma;
 	}
@@ -245,15 +257,54 @@ public class Json extends DataHandler {
 			j = source.indexOf(";", i);
 			if (j > i) {
 				String entityToLookFor = source.substring(i, j + 1);
-				String value = (String) htmlEntities.get(entityToLookFor);
+				String value = htmlEntities.get(entityToLookFor);
 				if (value != null) {
-					source = new StringBuffer().append(source.substring(0, i))
-							.append(value).append(source.substring(j + 1))
-							.toString();
+					source = new StringBuffer().append(source.substring(0, i)).append(value).append(source.substring(j + 1)).toString();
 					return unescapeHTML(source, i + 1); // recursive call
 				}
 			}
 		}
 		return source;
+	}
+
+	/**
+	 * returns a random color out of 6 predefined colors
+	 * 
+	 * @return
+	 */
+	private static int getRandomGraffitiColor() {
+		// random int
+		Random randomGenerator = new Random((new Date()).getTime());
+		int randomInt = randomGenerator.nextInt(6);
+
+		// System.out.println("random int: " + randomInt);
+
+		final int TRANSPARENCY = 180;
+		int resultColor = Color.argb(TRANSPARENCY, 117, 12, 91);
+		;
+
+		// select a random out of following colors
+		switch (randomInt) {
+		case 0:
+			resultColor = Color.argb(TRANSPARENCY, 117, 12, 91);
+			break;
+		case 1:
+			resultColor = Color.argb(TRANSPARENCY, 210, 26, 26);
+			break;
+		case 2:
+			resultColor = Color.argb(TRANSPARENCY, 33, 152, 6);
+			break;
+		case 3:
+			resultColor = Color.argb(TRANSPARENCY, 7, 81, 192);
+			break;
+		case 4:
+			resultColor = Color.argb(TRANSPARENCY, 191, 111, 7);
+			break;
+		case 5:
+			resultColor = Color.argb(TRANSPARENCY, 167, 173, 0);
+			break;
+
+		}
+		return resultColor;
 	}
 }

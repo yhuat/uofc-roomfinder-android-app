@@ -29,7 +29,6 @@ package org.mixare;
 import static android.hardware.SensorManager.SENSOR_DELAY_GAME;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,13 +54,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -71,9 +69,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -142,7 +140,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 
 	public void doError(Exception ex1) {
 		ex1.printStackTrace();
-		
+
 		if (!fError) {
 			fError = true;
 
@@ -179,6 +177,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 
 		/* Retry */
 		builder.setPositiveButton(DataView.CONNECTION_ERROR_DIALOG_BUTTON1, new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(DialogInterface dialog, int id) {
 				fError = false;
 				// TODO improve
@@ -192,6 +191,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 		});
 		/* Open settings */
 		builder.setNeutralButton(DataView.CONNECTION_ERROR_DIALOG_BUTTON2, new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(DialogInterface dialog, int id) {
 				Intent intent1 = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
 				startActivityForResult(intent1, 42);
@@ -199,6 +199,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 		});
 		/* Close application */
 		builder.setNegativeButton(DataView.CONNECTION_ERROR_DIALOG_BUTTON3, new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(DialogInterface dialog, int id) {
 				System.exit(0);
 			}
@@ -280,7 +281,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 				// add the default datasources to the preferences file
 				SharedPreferences.Editor dataSourceEditor = DataSourceSettings.edit();
 				// TODO: datasources
-				//dataSourceEditor.putString("DataSource0", "Wikipedia|http://ws.geonames.org/findNearbyWikipediaJSON|0|0|true");
+				// dataSourceEditor.putString("DataSource0", "Wikipedia|http://ws.geonames.org/findNearbyWikipediaJSON|0|0|true");
 				// dataSourceEditor.putString("DataSource1", "Twitter|http://search.twitter.com/search.json|2|0|true");
 				// dataSourceEditor.putString("DataSource2", "OpenStreetmap|http://open.mapquestapi.com/xapi/api/0.6/node[railway=station]|3|1|true");
 				// dataSourceEditor.putString("DataSource3", "Own URL|http://mixare.org/geotest.php|4|0|false");
@@ -292,6 +293,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			System.out.println("4");
 			doError(ex);
 		}
+		// mixContext.setAllDataSourcesForRoomfinder(false, false);
 	}
 
 	private void handleIntent(Intent intent) {
@@ -468,106 +470,153 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		int base = Menu.FIRST;
-		/* define the first */
-		MenuItem item1 = menu.add(base, base, base, getString(DataView.MENU_ITEM_1));
-		// MenuItem item2 =menu.add(base, base+1, base+1, getString(DataView.MENU_ITEM_2));
-		// MenuItem item3 =menu.add(base, base+2, base+2, getString(DataView.MENU_ITEM_3));
-		// MenuItem item4 =menu.add(base, base+3, base+3, getString(DataView.MENU_ITEM_4));
-		// MenuItem item5 =menu.add(base, base+4, base+4, getString(DataView.MENU_ITEM_5));
-		// MenuItem item6 =menu.add(base, base+5, base+5, getString(DataView.MENU_ITEM_6));
-		// MenuItem item7 =menu.add(base, base+6, base+6, getString(DataView.MENU_ITEM_7));
 
-		/* assign icons to the menu items */
-		item1.setIcon(drawable.icon_datasource);
-		// item2.setIcon(android.R.drawable.ic_menu_view);
-		// item3.setIcon(android.R.drawable.ic_menu_mapmode);
-		// item4.setIcon(android.R.drawable.ic_menu_zoom);
-		// item5.setIcon(android.R.drawable.ic_menu_search);
-		// item6.setIcon(android.R.drawable.ic_menu_info_details);
-		// item7.setIcon(android.R.drawable.ic_menu_share);
+		/* define the first */
+		menu.add(base, 1, base, "Where are my friends?");
+		menu.add(base, 2, base, "Show nearby buildings!");
+		menu.add(base, 3, base, "show Graffiti");
+		menu.add(base, 4, base, "draw graffiti");
 
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+
+		System.out.println("MENU ITEM: " + item.getItemId());
+
 		switch (item.getItemId()) {
 		/* Data sources */
 		case 1:
-			if (!dataView.isLauncherStarted()) {
-				MixListView.setList(1);
-				Intent intent = new Intent(MixView.this, DataSourceList.class);
-				startActivityForResult(intent, 40);
-			} else {
-				Toast.makeText(this, getString(DataView.OPTION_NOT_AVAILABLE_STRING_ID), Toast.LENGTH_LONG).show();
-			}
+			// if (mixContext.getAllDataSources().get(0).getEnabled())
+			// mixContext.getAllDataSources().get(0).setEnabled(false);
+			// else
+			// mixContext.getAllDataSources().get(0).setEnabled(true);
+
+			mixContext.getAllDataSources().get(0).setEnabled(true);
+			mixContext.getAllDataSources().get(1).setEnabled(false);
+			mixContext.getAllDataSources().get(2).setEnabled(false);
+			mixContext.getAllDataSources().get(3).setEnabled(false);
+
 			break;
-		/* List view */
 		case 2:
 
-			MixListView.setList(2);
-			/* if the list of titles to show in alternative list view is not empty */
-			if (dataView.getDataHandler().getMarkerCount() > 0) {
-				Intent intent1 = new Intent(MixView.this, MixListView.class);
-				startActivityForResult(intent1, 42);
-			}
-			/* if the list is empty */
-			else {
-				Toast.makeText(this, DataView.EMPTY_LIST_STRING_ID, Toast.LENGTH_LONG).show();
-			}
-			break;
-		/* Map View */
-		case 3:
-			Intent intent2 = new Intent(MixView.this, MixMap.class);
-			startActivityForResult(intent2, 20);
-			break;
-		/* zoom level */
-		case 4:
-			myZoomBar.setVisibility(View.VISIBLE);
-			zoomProgress = myZoomBar.getProgress();
-			break;
-		/* Search */
-		case 5:
-			onSearchRequested();
-			break;
-		/* GPS Information */
-		case 6:
-			Location currentGPSInfo = mixContext.getCurrentLocation();
-			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setMessage(getString(DataView.GENERAL_INFO_TEXT) + "\n\n" + getString(DataView.GPS_LONGITUDE) + currentGPSInfo.getLongitude() + "\n"
-					+ getString(DataView.GPS_LATITUDE) + currentGPSInfo.getLatitude() + "\n" + getString(DataView.GPS_ALTITUDE) + currentGPSInfo.getAltitude()
-					+ "m\n" + getString(DataView.GPS_SPEED) + currentGPSInfo.getSpeed() + "km/h\n" + getString(DataView.GPS_ACCURACY)
-					+ currentGPSInfo.getAccuracy() + "m\n" + getString(DataView.GPS_LAST_FIX) + new Date(currentGPSInfo.getTime()).toString() + "\n");
-			builder.setNegativeButton(getString(DataView.CLOSE_BUTTON), new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.dismiss();
-				}
-			});
-			AlertDialog alert = builder.create();
-			alert.setTitle(getString(DataView.GENERAL_INFO_TITLE));
-			alert.show();
-			break;
-		/* Case 6: license agreements */
-		case 7:
-			AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
-			builder1.setMessage(getString(DataView.LICENSE_TEXT));
-			/* Retry */
-			builder1.setNegativeButton(getString(DataView.CLOSE_BUTTON), new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.dismiss();
-				}
-			});
-			AlertDialog alert1 = builder1.create();
-			alert1.setTitle(getString(DataView.LICENSE_TITLE));
-			alert1.show();
+			// if (mixContext.getAllDataSources().get(1).getEnabled())
+			// mixContext.getAllDataSources().get(1).setEnabled(false);
+			// else
+			// mixContext.getAllDataSources().get(1).setEnabled(true);
+
+			mixContext.getAllDataSources().get(0).setEnabled(false);
+			mixContext.getAllDataSources().get(1).setEnabled(true);
+			mixContext.getAllDataSources().get(2).setEnabled(false);
+			mixContext.getAllDataSources().get(3).setEnabled(false);
 			break;
 
+		case 3:
+			mixContext.getAllDataSources().get(0).setEnabled(false);
+			mixContext.getAllDataSources().get(1).setEnabled(false);
+			mixContext.getAllDataSources().get(2).setEnabled(true);
+			mixContext.getAllDataSources().get(3).setEnabled(false);
+			break;
+		case 4:
+
+			// create alert dialog
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+			// set texts
+			alert.setTitle("Graffiti");
+			alert.setMessage("write something on the wall!");
+			alert.setCancelable(false);
+
+			// Set an EditText view to get user input
+			final EditText input = new EditText(this);
+			alert.setView(input);
+
+			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					String value = input.getText().toString();
+					System.out.println("graffiti: " + value);
+
+					// do something
+					new AddGraffiti().execute(value, Util.loadUsername(mixContext), "" + mixContext.curLoc.getLatitude(), "" + mixContext.curLoc.getLongitude());
+				}
+			});
+
+			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					// Canceled.
+				}
+			});
+
+			alert.show();
+
+			break;
 		}
+		dataView.reloadDatasources();
+
+		// /* List view */
+		// case 2:
+		//
+		// MixListView.setList(2);
+		// /* if the list of titles to show in alternative list view is not empty */
+		// if (dataView.getDataHandler().getMarkerCount() > 0) {
+		// Intent intent1 = new Intent(MixView.this, MixListView.class);
+		// startActivityForResult(intent1, 42);
+		// }
+		// /* if the list is empty */
+		// else {
+		// Toast.makeText(this, DataView.EMPTY_LIST_STRING_ID, Toast.LENGTH_LONG).show();
+		// }
+		// break;
+		// /* Map View */
+		// case 3:
+		// Intent intent2 = new Intent(MixView.this, MixMap.class);
+		// startActivityForResult(intent2, 20);
+		// break;
+		// /* zoom level */
+		// case 4:
+		// myZoomBar.setVisibility(View.VISIBLE);
+		// zoomProgress = myZoomBar.getProgress();
+		// break;
+		// /* Search */
+		// case 5:
+		// onSearchRequested();
+		// break;
+		// /* GPS Information */
+		// case 6:
+		// Location currentGPSInfo = mixContext.getCurrentLocation();
+		// AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		// builder.setMessage(getString(DataView.GENERAL_INFO_TEXT) + "\n\n" + getString(DataView.GPS_LONGITUDE) + currentGPSInfo.getLongitude() + "\n"
+		// + getString(DataView.GPS_LATITUDE) + currentGPSInfo.getLatitude() + "\n" + getString(DataView.GPS_ALTITUDE) + currentGPSInfo.getAltitude()
+		// + "m\n" + getString(DataView.GPS_SPEED) + currentGPSInfo.getSpeed() + "km/h\n" + getString(DataView.GPS_ACCURACY)
+		// + currentGPSInfo.getAccuracy() + "m\n" + getString(DataView.GPS_LAST_FIX) + new Date(currentGPSInfo.getTime()).toString() + "\n");
+		// builder.setNegativeButton(getString(DataView.CLOSE_BUTTON), new DialogInterface.OnClickListener() {
+		// public void onClick(DialogInterface dialog, int id) {
+		// dialog.dismiss();
+		// }
+		// });
+		// AlertDialog alert = builder.create();
+		// alert.setTitle(getString(DataView.GENERAL_INFO_TITLE));
+		// alert.show();
+		// break;
+		// /* Case 6: license agreements */
+		// case 7:
+		// AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+		// builder1.setMessage(getString(DataView.LICENSE_TEXT));
+		// /* Retry */
+		// builder1.setNegativeButton(getString(DataView.CLOSE_BUTTON), new DialogInterface.OnClickListener() {
+		// public void onClick(DialogInterface dialog, int id) {
+		// dialog.dismiss();
+		// }
+		// });
+		// AlertDialog alert1 = builder1.create();
+		// alert1.setTitle(getString(DataView.LICENSE_TITLE));
+		// alert1.show();
+		// break;
+
 		return true;
 	}
 
-	
-	
 	public float calcZoomLevel() {
 
 		int myZoomLevel = myZoomBar.getProgress();
@@ -607,6 +656,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 	private SeekBar.OnSeekBarChangeListener myZoomBarOnSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
 		Toast t;
 
+		@Override
 		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 			float myout = calcZoomLevel();
 
@@ -617,12 +667,14 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			t.show();
 		}
 
+		@Override
 		public void onStartTrackingTouch(SeekBar seekBar) {
 			Context ctx = seekBar.getContext();
 			t = Toast.makeText(ctx, "Radius: ", Toast.LENGTH_LONG);
 			// zoomChanging= true;
 		}
 
+		@Override
 		public void onStopTrackingTouch(SeekBar seekBar) {
 			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 			SharedPreferences.Editor editor = settings.edit();
@@ -640,8 +692,9 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 
 	};
 
+	@Override
 	public void onSensorChanged(SensorEvent evt) {
-		
+
 		try {
 
 			if (evt.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -682,7 +735,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			if (rHistIdx >= histR.length)
 				rHistIdx = 0;
 
-			smoothR.set( 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
+			smoothR.set(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f);
 			for (int i = 0; i < histR.length; i++) {
 				smoothR.add(histR[i]);
 			}
@@ -741,6 +794,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 		}
 	}
 
+	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 		if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD && accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE && compassErrorDisplayed == 0) {
 			for (int i = 0; i < 2; i++) {
@@ -785,6 +839,7 @@ class CameraSurface extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
+	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		try {
 			if (camera != null) {
@@ -820,6 +875,7 @@ class CameraSurface extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
+	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		try {
 			if (camera != null) {
@@ -838,6 +894,7 @@ class CameraSurface extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
+	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int h, int w) {
 		try {
 			Camera.Parameters parameters = camera.getParameters();
@@ -887,12 +944,11 @@ class CameraSurface extends SurfaceView implements SurfaceHolder.Callback {
 					bestw = 480;
 					besth = 320;
 				}
-				
-				
-				//TODO: fix resolution for other smartphones
+
+				// TODO: fix resolution for other smartphones
 				bestw = 1280;
 				besth = 720;
-				
+
 				parameters.setPreviewSize(bestw, besth);
 			} catch (Exception ex) {
 				parameters.setPreviewSize(480, 320);
@@ -973,7 +1029,14 @@ class AugmentedView extends View {
 				canvas.drawText(app.getZoomLevel(), (canvas.getWidth()) / 100 * zoomProgress + 20, height, zoomPaint);
 			}
 
-			MixView.dataView.draw(MixView.dWindow);
+			int i = 0;
+			
+			System.out.println("active marker count: " + MixView.dataView.getDataHandler().getMarkerList().size());
+			
+			// draw every 3 times
+			if (i++ % 3 == 0) {
+				MixView.dataView.draw(MixView.dWindow);
+			}
 		} catch (Exception ex) {
 			System.out.println("3");
 			ex.printStackTrace();

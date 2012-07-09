@@ -33,6 +33,7 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import javax.net.ssl.HostnameVerifier;
@@ -43,10 +44,12 @@ import javax.net.ssl.X509TrustManager;
 
 import org.mixare.data.DataSource;
 import org.mixare.data.DataSourceList;
+import org.mixare.data.UrlReader;
 import org.mixare.render.Matrix;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -59,6 +62,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -66,20 +70,20 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.ViewGroup.LayoutParams;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 /**
- * Cares about location management and about
- * the data (source, inputstream)
+ * Cares about location management and about the data (source, inputstream)
  */
 public class MixContext extends ContextWrapper {
 
-	//TAG for logging
+	// TAG for logging
 	public static final String TAG = "Mixare";
-	
+
 	public MixView mixView;
 	Context ctx;
 	boolean isURLvalid = true;
@@ -89,143 +93,165 @@ public class MixContext extends ContextWrapper {
 
 	Matrix rotationM = new Matrix();
 	float declination = 0f;
-	
-	//Location related
+
+	// Location related
 	private LocationManager lm;
 	Location curLoc;
 	Location locationAtLastDownload;
-	
-	private ArrayList<DataSource> allDataSources=new ArrayList<DataSource>();
 
-	
+	private ArrayList<DataSource> allDataSources = new ArrayList<DataSource>();
+
 	public ArrayList<DataSource> getAllDataSources() {
 		return this.allDataSources;
 	}
-	
+
 	public void setAllDataSourcesforLauncher(DataSource datasource) {
-		this.allDataSources.clear();
+		// this.allDataSources.clear();
+		// this.allDataSources.add(datasource);
+
+		boolean buildings = false;
+		boolean navigation = false;
+
+		if (datasource.getUrl().contains("buildings")) {
+			buildings = true;
+		}
+
+		setAllDataSourcesForRoomfinder(buildings, navigation);
+		datasource.setEnabled(true);
 		this.allDataSources.add(datasource);
 	}
-	
-	public void refreshDataSources() {
+
+	private void setAllDataSourcesForRoomfinder(boolean buildings, boolean navigation) {
+
+		buildings = false;
+
 		this.allDataSources.clear();
-		SharedPreferences settings = getSharedPreferences(
-				DataSourceList.SHARED_PREFS, 0);
-		int size = settings.getAll().size();
-		if (size == 0){
-			SharedPreferences.Editor dataSourceEditor = settings.edit();
-			dataSourceEditor.putString("DataSource0", "Wikipedia|http://ws.geonames.org/findNearbyWikipediaJSON|0|0|true");
-			dataSourceEditor.putString("DataSource1", "Twitter|http://search.twitter.com/search.json|2|0|true");
-			dataSourceEditor.putString("DataSource2", "OpenStreetmap|http://open.mapquestapi.com/xapi/api/0.6/node[railway=station]|3|1|true");
-			dataSourceEditor.putString("DataSource3", "Own URL|http://mixare.org/geotest.php|4|0|false");
-			dataSourceEditor.commit();
-			size = settings.getAll().size();
-		}
-		// copy the value from shared preference to adapter
-		for (int i = 0; i < size; i++) {
-			String fields[] = settings.getString("DataSource" + i, "").split("\\|", -1);
-			this.allDataSources.add(new DataSource(fields[0], fields[1], fields[2], fields[3], fields[4]));
-		}
+
+		this.allDataSources.add(new DataSource("Friends", DataView.REST_ANNOTATION_FRIENDS_URL, 4, 0, false));
+		this.allDataSources.add(new DataSource("Buildings", DataView.REST_ANNOTATION_BUILDINGS_URL, 4, 0, buildings));
+		this.allDataSources.add(new DataSource("Graffiti", DataView.REST_ANNOTATION_GRAFFITI_URL, 4, 0, false));
+		// this.allDataSources.add(new DataSource("Friends", "" , 0, 0, true));
+
 	}
+
+	public void refreshDataSources() {
+		// this.allDataSources.clear();
+		// SharedPreferences settings = getSharedPreferences(
+		// DataSourceList.SHARED_PREFS, 0);
+		// int size = settings.getAll().size();
+		// if (size == 0){
+		// SharedPreferences.Editor dataSourceEditor = settings.edit();
+		// dataSourceEditor.putString("DataSource0", "Wikipedia|http://ws.geonames.org/findNearbyWikipediaJSON|0|0|true");
+		// dataSourceEditor.putString("DataSource1", "Twitter|http://search.twitter.com/search.json|2|0|true");
+		// dataSourceEditor.putString("DataSource2", "OpenStreetmap|http://open.mapquestapi.com/xapi/api/0.6/node[railway=station]|3|1|true");
+		// dataSourceEditor.putString("DataSource3", "Own URL|http://mixare.org/geotest.php|4|0|false");
+		// dataSourceEditor.commit();
+		// size = settings.getAll().size();
+		// }
+		// // copy the value from shared preference to adapter
+		// for (int i = 0; i < size; i++) {
+		// String fields[] = settings.getString("DataSource" + i, "").split("\\|", -1);
+		// this.allDataSources.add(new DataSource(fields[0], fields[1], fields[2], fields[3], fields[4]));
+		// }
+	}
+
 	public MixContext(Context appCtx) {
-	
+
 		super(appCtx);
 		this.mixView = (MixView) appCtx;
 		this.ctx = appCtx.getApplicationContext();
 
 		refreshDataSources();
-		
-		boolean atLeastOneDatasourceSelected=false;
-		
-		for(DataSource ds: this.allDataSources) {
-			if(ds.getEnabled())
-				atLeastOneDatasourceSelected=true;
+
+		boolean atLeastOneDatasourceSelected = false;
+
+		for (DataSource ds : this.allDataSources) {
+			if (ds.getEnabled())
+				atLeastOneDatasourceSelected = true;
 		}
-		// select Wikipedia if nothing was previously selected  
-		if(!atLeastOneDatasourceSelected)
-			//TODO>: start intent data source select
-		
-		
-		rotationM.toIdentity();
-		
+		// select Wikipedia if nothing was previously selected
+		if (!atLeastOneDatasourceSelected)
+			// TODO>: start intent data source select
+
+			rotationM.toIdentity();
+
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		
+
 		Criteria c = new Criteria();
-		//try to use the coarse provider first to get a rough position
+		// try to use the coarse provider first to get a rough position
 		c.setAccuracy(Criteria.ACCURACY_COARSE);
 		String coarseProvider = lm.getBestProvider(c, true);
 		try {
-			lm.requestLocationUpdates(coarseProvider, 0 , 0, lcoarse);
+			lm.requestLocationUpdates(coarseProvider, 0, 0, lcoarse);
 		} catch (Exception e) {
 			Log.d(TAG, "Could not initialize the coarse provider");
 		}
-		
-		//need to be precise
-		c.setAccuracy(Criteria.ACCURACY_FINE);				
-		//fineProvider will be used for the initial phase (requesting fast updates)
-		//as well as during normal program usage
-		//NB: using "true" as second parameters means we get the provider only if it's enabled
+
+		// need to be precise
+		c.setAccuracy(Criteria.ACCURACY_FINE);
+		// fineProvider will be used for the initial phase (requesting fast updates)
+		// as well as during normal program usage
+		// NB: using "true" as second parameters means we get the provider only if it's enabled
 		String fineProvider = lm.getBestProvider(c, true);
 		try {
-			lm.requestLocationUpdates(fineProvider, 0 , 0, lbounce);
+			lm.requestLocationUpdates(fineProvider, 0, 0, lbounce);
 		} catch (Exception e) {
 			Log.d(TAG, "Could not initialize the bounce provider");
 		}
-		
-		//fallback for the case where GPS and network providers are disabled
+
+		// fallback for the case where GPS and network providers are disabled
 		Location hardFix = new Location("reverseGeocoded");
 
-		//Frangart, Eppan, Bozen, Italy
+		// Frangart, Eppan, Bozen, Italy
 		hardFix.setLatitude(46.480302);
 		hardFix.setLongitude(11.296005);
 		hardFix.setAltitude(300);
 
-		/*New York*/
-//		hardFix.setLatitude(40.731510);
-//		hardFix.setLongitude(-73.991547);
-		
-		// TU Wien
-//		hardFix.setLatitude(48.196349);
-//		hardFix.setLongitude(16.368653);
-//		hardFix.setAltitude(180);
+		/* New York */
+		// hardFix.setLatitude(40.731510);
+		// hardFix.setLongitude(-73.991547);
 
-		//frequency and minimum distance for update
-		//this values will only be used after there's a good GPS fix
-		//see back-off pattern discussion 
-		//http://stackoverflow.com/questions/3433875/how-to-force-gps-provider-to-get-speed-in-android
-		//thanks Reto Meier for his presentation at gddde 2010
-		long lFreq = 60000;	//60 seconds
-		float lDist = 50;		//20 meters
+		// TU Wien
+		// hardFix.setLatitude(48.196349);
+		// hardFix.setLongitude(16.368653);
+		// hardFix.setAltitude(180);
+
+		// frequency and minimum distance for update
+		// this values will only be used after there's a good GPS fix
+		// see back-off pattern discussion
+		// http://stackoverflow.com/questions/3433875/how-to-force-gps-provider-to-get-speed-in-android
+		// thanks Reto Meier for his presentation at gddde 2010
+		long lFreq = 60000; // 60 seconds
+		float lDist = 50; // 20 meters
 		try {
-			lm.requestLocationUpdates(fineProvider, lFreq , lDist, lnormal);
+			lm.requestLocationUpdates(fineProvider, lFreq, lDist, lnormal);
 		} catch (Exception e) {
 			Log.d(TAG, "Could not initialize the normal provider");
-			Toast.makeText( this, getString(DataView.CONNECTION_GPS_DIALOG_TEXT), Toast.LENGTH_LONG ).show();
+			Toast.makeText(this, getString(DataView.CONNECTION_GPS_DIALOG_TEXT), Toast.LENGTH_LONG).show();
 		}
-		
+
 		try {
-			Location lastFinePos=lm.getLastKnownLocation(fineProvider);
-			Location lastCoarsePos=lm.getLastKnownLocation(coarseProvider);
-			if(lastFinePos!=null)
+			Location lastFinePos = lm.getLastKnownLocation(fineProvider);
+			Location lastCoarsePos = lm.getLastKnownLocation(coarseProvider);
+			if (lastFinePos != null)
 				curLoc = lastFinePos;
-			else if (lastCoarsePos!=null)
+			else if (lastCoarsePos != null)
 				curLoc = lastCoarsePos;
 			else
 				curLoc = hardFix;
-			
+
 		} catch (Exception ex2) {
-			//ex2.printStackTrace();
+			// ex2.printStackTrace();
 			curLoc = hardFix;
-			Toast.makeText( this, getString(DataView.CONNECTION_GPS_DIALOG_TEXT), Toast.LENGTH_LONG ).show();
+			Toast.makeText(this, getString(DataView.CONNECTION_GPS_DIALOG_TEXT), Toast.LENGTH_LONG).show();
 		}
-		
+
 		setLocationAtLastDownload(curLoc);
 
-//TODO fix logic
+		// TODO fix logic
 
-	
 	}
-	
+
 	public void unregisterLocationManager() {
 		if (lm != null) {
 			lm.removeUpdates(lnormal);
@@ -241,11 +267,10 @@ public class MixContext extends ContextWrapper {
 
 	public String getStartUrl() {
 		Intent intent = ((Activity) mixView).getIntent();
-		if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_VIEW)) { 
-			return intent.getData().toString(); 
-		} 
-		else { 
-			return ""; 
+		if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_VIEW)) {
+			return intent.getData().toString();
+		} else {
+			return "";
 		}
 	}
 
@@ -261,61 +286,67 @@ public class MixContext extends ContextWrapper {
 		}
 	}
 
-	public InputStream getHttpGETInputStream(String urlStr)
-	throws Exception {
+	public InputStream getHttpGETInputStream(String urlStr) throws Exception {
 		InputStream is = null;
 		URLConnection conn = null;
 
-	    // HTTP connection reuse which was buggy pre-froyo
-	    if (Integer.parseInt(Build.VERSION.SDK) < Build.VERSION_CODES.FROYO) {
-	        System.setProperty("http.keepAlive", "false");
-	    }
-	    
-		if (urlStr.startsWith("file://"))			
+		// HTTP connection reuse which was buggy pre-froyo
+		if (Integer.parseInt(Build.VERSION.SDK) < Build.VERSION_CODES.FROYO) {
+			System.setProperty("http.keepAlive", "false");
+		}
+
+		if (urlStr.startsWith("file://"))
 			return new FileInputStream(urlStr.replace("file://", ""));
 
 		if (urlStr.startsWith("content://"))
 			return getContentInputStream(urlStr, null);
 
 		if (urlStr.startsWith("https://")) {
-			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier(){
-    			public boolean verify(String hostname, SSLSession session) {
-    				return true;
-    			}});
-		SSLContext context = SSLContext.getInstance("TLS");
-		context.init(null, new X509TrustManager[]{new X509TrustManager(){
-			public void checkClientTrusted(X509Certificate[] chain,
-					String authType) throws CertificateException {}
-			public void checkServerTrusted(X509Certificate[] chain,
-					String authType) throws CertificateException {}
-			public X509Certificate[] getAcceptedIssuers() {
-				return new X509Certificate[0];
-			}}}, new SecureRandom());
-		HttpsURLConnection.setDefaultSSLSocketFactory(
-				context.getSocketFactory());
+			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+				@Override
+				public boolean verify(String hostname, SSLSession session) {
+					return true;
+				}
+			});
+			SSLContext context = SSLContext.getInstance("TLS");
+			context.init(null, new X509TrustManager[] { new X509TrustManager() {
+				@Override
+				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				}
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+				}
+
+				@Override
+				public X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+			} }, new SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
 		}
-		
+
 		try {
 			URL url = new URL(urlStr);
-			conn =  url.openConnection();
+			conn = url.openConnection();
 			conn.setReadTimeout(10000);
 			conn.setConnectTimeout(10000);
 
 			is = conn.getInputStream();
-			
+
 			return is;
 		} catch (Exception ex) {
 			try {
 				is.close();
-			} catch (Exception ignore) {			
+			} catch (Exception ignore) {
 			}
 			try {
-				if(conn instanceof HttpURLConnection)
-					((HttpURLConnection)conn).disconnect();
-			} catch (Exception ignore) {			
+				if (conn instanceof HttpURLConnection)
+					((HttpURLConnection) conn).disconnect();
+			} catch (Exception ignore) {
 			}
-			
-			throw ex;				
+
+			throw ex;
 
 		}
 	}
@@ -341,8 +372,7 @@ public class MixContext extends ContextWrapper {
 		return sb.toString();
 	}
 
-	public InputStream getHttpPOSTInputStream(String urlStr,
-			String params) throws Exception {
+	public InputStream getHttpPOSTInputStream(String urlStr, String params) throws Exception {
 		InputStream is = null;
 		OutputStream os = null;
 		HttpURLConnection conn = null;
@@ -365,18 +395,18 @@ public class MixContext extends ContextWrapper {
 			}
 
 			is = conn.getInputStream();
-			
+
 			return is;
 		} catch (Exception ex) {
 
 			try {
 				is.close();
-			} catch (Exception ignore) {			
+			} catch (Exception ignore) {
 
 			}
 			try {
 				os.close();
-			} catch (Exception ignore) {			
+			} catch (Exception ignore) {
 
 			}
 			try {
@@ -386,15 +416,14 @@ public class MixContext extends ContextWrapper {
 
 			if (conn != null && conn.getResponseCode() == 405) {
 				return getHttpGETInputStream(urlStr);
-			} else {		
+			} else {
 
 				throw ex;
 			}
 		}
 	}
 
-	public InputStream getContentInputStream(String urlStr, String params)
-	throws Exception {
+	public InputStream getContentInputStream(String urlStr, String params) throws Exception {
 		ContentResolver cr = mixView.getContentResolver();
 		Cursor cur = cr.query(Uri.parse(urlStr), null, params, null, null);
 
@@ -405,8 +434,7 @@ public class MixContext extends ContextWrapper {
 			String result = cur.getString(cur.getColumnIndex("RESULT"));
 			cur.deactivate();
 
-			return new ByteArrayInputStream(result
-					.getBytes());
+			return new ByteArrayInputStream(result.getBytes());
 		} else {
 			cur.deactivate();
 
@@ -430,20 +458,26 @@ public class MixContext extends ContextWrapper {
 			is.close();
 	}
 
+	public void showMarkerDetails(long annotationId) throws Exception {
+
+	}
+
 	public void loadMixViewWebPage(String url) throws Exception {
 		// TODO
 		WebView webview = new WebView(mixView);
 		webview.getSettings().setJavaScriptEnabled(true);
 
 		webview.setWebViewClient(new WebViewClient() {
-			public boolean  shouldOverrideUrlLoading  (WebView view, String url) {
-			     view.loadUrl(url);
+			@Override
+			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				view.loadUrl(url);
 				return true;
 			}
 
 		});
-				
+
 		Dialog d = new Dialog(mixView) {
+			@Override
 			public boolean onKeyDown(int keyCode, KeyEvent event) {
 				if (keyCode == KeyEvent.KEYCODE_BACK)
 					this.dismiss();
@@ -452,27 +486,28 @@ public class MixContext extends ContextWrapper {
 		};
 		d.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		d.getWindow().setGravity(Gravity.BOTTOM);
-		d.addContentView(webview, new FrameLayout.LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
-				Gravity.BOTTOM));
+		d.addContentView(webview, new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
 
 		d.show();
-		
+
 		webview.loadUrl(url);
 	}
+
 	public void loadWebPage(String url, Context context) throws Exception {
 		// TODO
 		WebView webview = new WebView(context);
-		
+
 		webview.setWebViewClient(new WebViewClient() {
-			public boolean  shouldOverrideUrlLoading  (WebView view, String url) {
-			     view.loadUrl(url);
+			@Override
+			public boolean shouldOverrideUrlLoading(WebView view, String url) {
+				view.loadUrl(url);
 				return true;
 			}
 
 		});
-				
+
 		Dialog d = new Dialog(context) {
+			@Override
 			public boolean onKeyDown(int keyCode, KeyEvent event) {
 				if (keyCode == KeyEvent.KEYCODE_BACK)
 					this.dismiss();
@@ -481,12 +516,10 @@ public class MixContext extends ContextWrapper {
 		};
 		d.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		d.getWindow().setGravity(Gravity.BOTTOM);
-		d.addContentView(webview, new FrameLayout.LayoutParams(
-				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
-				Gravity.BOTTOM));
+		d.addContentView(webview, new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
 
 		d.show();
-		
+
 		webview.loadUrl(url);
 	}
 
@@ -497,19 +530,22 @@ public class MixContext extends ContextWrapper {
 	public void setLocationAtLastDownload(Location locationAtLastDownload) {
 		this.locationAtLastDownload = locationAtLastDownload;
 	}
-	
+
 	private LocationListener lbounce = new LocationListener() {
 
 		@Override
 		public void onLocationChanged(Location location) {
-			Log.d(TAG, "bounce Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy());
-			//Toast.makeText(ctx, "BOUNCE: Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy(), Toast.LENGTH_LONG).show();
+			Log.d(TAG, "bounce Location Changed: " + location.getProvider() + " lat: " + location.getLatitude() + " lon: " + location.getLongitude() + " alt: "
+					+ location.getAltitude() + " acc: " + location.getAccuracy());
+			// Toast.makeText(ctx,
+			// "BOUNCE: Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy(),
+			// Toast.LENGTH_LONG).show();
 
 			downloadManager.purgeLists();
-			
+
 			if (location.getAccuracy() < 40) {
 				lm.removeUpdates(lcoarse);
-				lm.removeUpdates(lbounce);			
+				lm.removeUpdates(lbounce);
 			}
 		}
 
@@ -525,17 +561,21 @@ public class MixContext extends ContextWrapper {
 		}
 
 		@Override
-		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
-		
+		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+		}
+
 	};
-	
+
 	private LocationListener lcoarse = new LocationListener() {
 
 		@Override
 		public void onLocationChanged(Location location) {
 			try {
-				Log.d(TAG, "coarse Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy());
-				//Toast.makeText(ctx, "COARSE: Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy(), Toast.LENGTH_LONG).show();
+				Log.d(TAG, "coarse Location Changed: " + location.getProvider() + " lat: " + location.getLatitude() + " lon: " + location.getLongitude()
+						+ " alt: " + location.getAltitude() + " acc: " + location.getAccuracy());
+				// Toast.makeText(ctx,
+				// "COARSE: Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy(),
+				// Toast.LENGTH_LONG).show();
 				lm.removeUpdates(lcoarse);
 				downloadManager.purgeLists();
 			} catch (Exception ex) {
@@ -544,41 +584,56 @@ public class MixContext extends ContextWrapper {
 		}
 
 		@Override
-		public void onProviderDisabled(String arg0) {}
+		public void onProviderDisabled(String arg0) {
+		}
 
 		@Override
-		public void onProviderEnabled(String arg0) {}
+		public void onProviderEnabled(String arg0) {
+		}
 
 		@Override
-		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
-		
+		public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+		}
+
 	};
 
 	private LocationListener lnormal = new LocationListener() {
-		public void onProviderDisabled(String provider) {}
+		@Override
+		public void onProviderDisabled(String provider) {
+		}
 
-		public void onProviderEnabled(String provider) {}
+		@Override
+		public void onProviderEnabled(String provider) {
+		}
 
-		public void onStatusChanged(String provider, int status, Bundle extras) {}
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+		}
 
+		@Override
 		public void onLocationChanged(Location location) {
-			Log.d(TAG, "normal Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy());
-			//Toast.makeText(ctx, "NORMAL: Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy(), Toast.LENGTH_LONG).show();
+			Log.d(TAG, "normal Location Changed: " + location.getProvider() + " lat: " + location.getLatitude() + " lon: " + location.getLongitude() + " alt: "
+					+ location.getAltitude() + " acc: " + location.getAccuracy());
+			// Toast.makeText(ctx,
+			// "NORMAL: Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy(),
+			// Toast.LENGTH_LONG).show();
 			try {
 
 				downloadManager.purgeLists();
-				Log.v(TAG,"Location Changed: "+location.getProvider()+" lat: "+location.getLatitude()+" lon: "+location.getLongitude()+" alt: "+location.getAltitude()+" acc: "+location.getAccuracy());
-					synchronized (curLoc) {
-						curLoc = location;
-					}
-					mixView.repaint();
-					Location lastLoc=getLocationAtLastDownload();
-					if(lastLoc==null)
-						setLocationAtLastDownload(location);
+				Log.v(TAG, "Location Changed: " + location.getProvider() + " lat: " + location.getLatitude() + " lon: " + location.getLongitude() + " alt: "
+						+ location.getAltitude() + " acc: " + location.getAccuracy());
+				synchronized (curLoc) {
+					curLoc = location;
+				}
+				mixView.repaint();
+				Location lastLoc = getLocationAtLastDownload();
+				if (lastLoc == null)
+					setLocationAtLastDownload(location);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
 
 	};
+
 }

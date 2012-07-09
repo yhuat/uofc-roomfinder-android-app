@@ -41,10 +41,16 @@ public class DataHandler {
 	// complete marker list
 	private List<Marker> markerList = new ArrayList<Marker>();
 	
+	public void clearMarkerList(){
+		markerList = new ArrayList<Marker>();
+	}
+	
 	public void addMarkers(List<Marker> markers) {
 
 		Log.v(MixView.TAG, "Marker before: "+markerList.size());
 		for(Marker ma:markers) {
+			System.out.println("marker ID: " + ma.getID());
+			
 			if(!markerList.contains(ma))
 				markerList.add(ma);
 		}
@@ -91,6 +97,7 @@ public class DataHandler {
 	/**
 	 * @deprecated Nobody should get direct access to the list
 	 */
+	@Deprecated
 	public List getMarkerList() {
 		return markerList;
 	}
@@ -98,6 +105,7 @@ public class DataHandler {
 	/**
 	 * @deprecated Nobody should get direct access to the list
 	 */
+	@Deprecated
 	public void setMarkerList(List markerList) {
 		this.markerList = markerList;
 	}
