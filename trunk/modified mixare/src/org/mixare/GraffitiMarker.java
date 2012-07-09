@@ -20,6 +20,8 @@
 package org.mixare;
 
 import java.text.DecimalFormat;
+import java.util.Date;
+import java.util.Random;
 
 import org.mixare.data.DataSource;
 import org.mixare.gui.PaintScreen;
@@ -35,14 +37,16 @@ import android.location.Location;
  * @author hannes
  * 
  */
-public class POIMarker extends Marker {
+public class GraffitiMarker extends Marker {
 
-	public static final int MAX_OBJECTS = 20;
+	int color;
+
+	public static final int MAX_OBJECTS = 15;
 	public static final int OSM_URL_MAX_OBJECTS = 5;
 
-	public POIMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource) {
+	public GraffitiMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource, int color) {
 		super(title, latitude, longitude, altitude, URL, datasource);
-
+		this.color = color;
 	}
 
 	@Override
@@ -110,6 +114,7 @@ public class POIMarker extends Marker {
 				textBlock.setBgColor(Color.argb(180, 0, 0, 0));
 				textBlock.setBorderColor(Color.rgb(255, 255, 255));
 			}
+			textBlock.setBgColor(color);
 			// dw.setColor(DataSource.getColor(type));
 
 			float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y, signMarker.x, signMarker.y);

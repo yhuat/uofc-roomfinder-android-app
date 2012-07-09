@@ -25,9 +25,14 @@ import org.mixare.data.DataSource;
 import org.mixare.gui.PaintScreen;
 import org.mixare.gui.TextObj;
 
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Path;
 import android.location.Location;
+import android.sax.RootElement;
 
 /**
  * This markers represent the points of interest. On the screen they appear as circles, since this class inherits the draw method of the Marker.
@@ -35,14 +40,16 @@ import android.location.Location;
  * @author hannes
  * 
  */
-public class POIMarker extends Marker {
+public class FriendMarker extends Marker {
 
 	public static final int MAX_OBJECTS = 20;
 	public static final int OSM_URL_MAX_OBJECTS = 5;
 
-	public POIMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource) {
-		super(title, latitude, longitude, altitude, URL, datasource);
+	MixContext ctx;
 
+	public FriendMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource, MixContext ctx) {
+		super(title, latitude, longitude, altitude, URL, datasource);
+		this.ctx = ctx;
 	}
 
 	@Override
@@ -99,7 +106,8 @@ public class POIMarker extends Marker {
 			textStr = title + "\n (" + df.format(d) + "km)";
 		}
 
-		textBlock = new TextObj(textStr, 28, 250, dw, underline);
+		//textBlock = new TextObj(textStr, Math.round(maxHeight / 2f) + 1, 250, dw, underline);
+		textBlock = new TextObj(textStr, 20, 250, dw, underline);
 
 		if (isVisible) {
 			// based on the distance set the colour
@@ -117,7 +125,32 @@ public class POIMarker extends Marker {
 			dw.setStrokeWidth(1f);
 			dw.setFill(true);
 			// dw.paintObjectBottom(txtLab, dw.getWidth()/2 - txtLab.getWidth() / 2, (float) (dw.getHeight() * 0.75), currentAngle + 90, 1);
-			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + maxHeight, currentAngle + 90, 1);
+
+			Bitmap friendSymbol = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.friend);
+
+			// rotate img
+			// Matrix matrix = new Matrix();
+			// matrix.postRotate(270);
+			// friendSymbol = Bitmap.createBitmap(friendSymbol, 0, 0, friendSymbol.getWidth(), friendSymbol.getHeight(), matrix, true);
+
+			// resize img
+			int width = friendSymbol.getWidth();
+			int height = friendSymbol.getHeight();
+			float scaleWidth = ((float) 100) / width;
+			float scaleHeight = ((float) 100) / height;
+			Matrix matrix = new Matrix();
+			matrix.postScale(scaleWidth, scaleHeight);
+			friendSymbol = Bitmap.createBitmap(friendSymbol, 0, 0, width, height, matrix, false);
+
+			// canvas.drawColor(Color.BLACK);
+			dw.paintBitmap(friendSymbol, signMarker.x, signMarker.y, currentAngle + 90);
+
+			
+			//dw.paintCircle((cMarker.x), (cMarker.y), (float) 5);
+			
+			// dw.paintBitmap(bitmap, left, top)
+			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + (maxHeight + 40), currentAngle + 90, 1);
+			// dw.paintObj(txtLab, signMarker.x , signMarker.y , currentAngle + 90, 1);
 
 		}
 	}

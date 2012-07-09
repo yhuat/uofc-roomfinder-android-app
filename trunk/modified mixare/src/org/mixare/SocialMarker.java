@@ -22,38 +22,34 @@ package org.mixare;
 import org.mixare.data.DataSource;
 import org.mixare.gui.PaintScreen;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 
 /**
- * The SocialMarker class represents a marker, which contains data from
- * sources like twitter etc. Social markers appear at the top of the screen
- * and show a small logo of the source.
+ * The SocialMarker class represents a marker, which contains data from sources like twitter etc. Social markers appear at the top of the screen and show a
+ * small logo of the source.
  * 
  * @author hannes
- *
+ * 
  */
 public class SocialMarker extends Marker {
-	
-	public static final int MAX_OBJECTS=15;
 
-	public SocialMarker(String title, double latitude, double longitude,
-			double altitude, String URL, DataSource datasource) {
+	public static final int MAX_OBJECTS = 15;
+
+	public SocialMarker(String title, double latitude, double longitude, double altitude, String URL, DataSource datasource) {
 		super(title, latitude, longitude, altitude, URL, datasource);
 	}
 
 	@Override
 	public void update(Location curGPSFix) {
 
-		//0.35 radians ~= 20 degree
-		//0.85 radians ~= 45 degree
-		//minAltitude = sin(0.35)
-		//maxAltitude = sin(0.85)
-		
+		// 0.35 radians ~= 20 degree
+		// 0.85 radians ~= 45 degree
+		// minAltitude = sin(0.35)
+		// maxAltitude = sin(0.85)
+
 		// we want the social markers to be on the upper part of
-		// your surrounding sphere 
-		double altitude = curGPSFix.getAltitude()+Math.sin(0.35)*distance+Math.sin(0.4)*(distance/(MixView.dataView.getRadius()*1000f/distance));
+		// your surrounding sphere
+		double altitude = curGPSFix.getAltitude() + Math.sin(0.35) * distance + Math.sin(0.4) * (distance / (MixView.dataView.getRadius() * 1000f / distance));
 		mGeoLoc.setAltitude(altitude);
 		super.update(curGPSFix);
 
@@ -66,16 +62,16 @@ public class SocialMarker extends Marker {
 
 		if (isVisible) {
 			float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
-			//Bitmap bitmap = BitmapFactory.decodeResource(MixContext.getResources(), DataSource.getDataSourceIcon());
-//			if(bitmap!=null) {
-//				dw.paintBitmap(bitmap, cMarker.x - maxHeight/1.5f, cMarker.y - maxHeight/1.5f);
-//			}
-//			else {
-				dw.setStrokeWidth(maxHeight / 10f);
-				dw.setFill(false);
-				//dw.setColor(DataSource.getColor(type));
-				dw.paintCircle(cMarker.x, cMarker.y, maxHeight / 1.5f);
-			//}
+			// Bitmap bitmap = BitmapFactory.decodeResource(MixContext.getResources(), DataSource.getDataSourceIcon());
+			// if(bitmap!=null) {
+			// dw.paintBitmap(bitmap, cMarker.x - maxHeight/1.5f, cMarker.y - maxHeight/1.5f);
+			// }
+			// else {
+			dw.setStrokeWidth(maxHeight / 10f);
+			dw.setFill(false);
+			// dw.setColor(DataSource.getColor(type));
+			dw.paintCircle(cMarker.x, cMarker.y, maxHeight / 1.5f);
+			// }
 		}
 	}
 
@@ -83,5 +79,5 @@ public class SocialMarker extends Marker {
 	public int getMaxObjects() {
 		return MAX_OBJECTS;
 	}
-	
+
 }

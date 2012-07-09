@@ -269,6 +269,7 @@ public class MixListView extends ListActivity {
 
 	public static void createContextMenu(ImageView icon) {
 		icon.setOnCreateContextMenuListener(new OnCreateContextMenuListener() {				
+			@Override
 			public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 				int index=0;
 				switch(ListItemAdapter.itemPosition){
@@ -297,12 +298,14 @@ public class MixListView extends ListActivity {
 					alert.setView(input);
 
 					alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog, int id) {       		
 							Editable value = input.getText();
 							customizedURL = ""+value;
 						}
 					});
 					alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog, int id) {       		
 							dialog.dismiss();
 						}

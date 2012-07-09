@@ -25,7 +25,6 @@ package org.mixare.data;
 import org.mixare.R;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -167,50 +166,50 @@ public class DataSource extends Activity {
 	}
 
 	public String createRequestParams(double lat, double lon, double alt, float radius,String locale) {
-		String ret="";
-		if (!ret.startsWith("file://")) {
-			switch(this.type) {
-			
-			case WIKIPEDIA: 
-				float geoNamesRadius = radius > 20 ? 20 : radius; //Free service limited to 20km
-				ret+=
-				"?lat=" + lat +
-				"&lng=" + lon + 
-				"&radius="+ geoNamesRadius +
-				"&maxRows=50" +
-				"&lang=" + locale+
-				"&username=mixare"; 
-			break;
-			
-			case BUZZ: 
-				ret+= 
-				"&lat=" + lat+
-				"&lon=" + lon + 
-				"&radius="+ radius*1000;
-			break;
-			
-			case TWITTER: 
-				ret+=
-				"?geocode=" + lat + "%2C" + lon + "%2C" + 
-				Math.max(radius, 1.0) + "km" ;				
-			break;
-			
-			case MIXARE:
-				ret+=
-				"?latitude=" + Double.toString(lat) + 
-				"&longitude=" + Double.toString(lon) + 
-				"&altitude=" + Double.toString(alt) +
-				"&radius=" + Double.toString(radius);
-			break;
-			
-			case OSM: 
-				ret+= XMLHandler.getOSMBoundingBox(lat, lon, radius);
-			break;
-			}
-			
-		}
-		
-		return ret;
+//		String ret="";
+//		if (!ret.startsWith("file://")) {
+//			switch(this.type) {
+//			
+//			case WIKIPEDIA: 
+//				float geoNamesRadius = radius > 20 ? 20 : radius; //Free service limited to 20km
+//				ret+=
+//				"?lat=" + lat +
+//				"&lng=" + lon + 
+//				"&radius="+ geoNamesRadius +
+//				"&maxRows=50" +
+//				"&lang=" + locale+
+//				"&username=mixare"; 
+//			break;
+//			
+//			case BUZZ: 
+//				ret+= 
+//				"&lat=" + lat+
+//				"&lon=" + lon + 
+//				"&radius="+ radius*1000;
+//			break;
+//			
+//			case TWITTER: 
+//				ret+=
+//				"?geocode=" + lat + "%2C" + lon + "%2C" + 
+//				Math.max(radius, 1.0) + "km" ;				
+//			break;
+//			
+//			case MIXARE:
+//				ret+=
+//				"?latitude=" + Double.toString(lat) + 
+//				"&longitude=" + Double.toString(lon) + 
+//				"&altitude=" + Double.toString(alt) +
+//				"&radius=" + Double.toString(radius);
+//			break;
+//			
+//			case OSM: 
+//				ret+= XMLHandler.getOSMBoundingBox(lat, lon, radius);
+//			break;
+//			}
+//			
+//		}
+//		
+		return null;
 	}
 	
 	public int getColor() {

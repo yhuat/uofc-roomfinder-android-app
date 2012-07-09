@@ -59,6 +59,7 @@ public class DownloadManager implements Runnable {
 		this.ctx = ctx;
 	}
 
+	@Override
 	public void run() {
 		String jobId;
 		DownloadRequest request;
@@ -150,7 +151,8 @@ public class DownloadManager implements Runnable {
 
 					Log.d(MixView.TAG, "loading JSON data");
 
-					List<Marker> markers = layer.load(root,request.source);
+					List<Marker> markers = layer.load(root,request.source, ctx);
+					System.out.println("markers in json: "+ markers.size());
 					result.setMarkers(markers);
 
 					result.source = request.source;
