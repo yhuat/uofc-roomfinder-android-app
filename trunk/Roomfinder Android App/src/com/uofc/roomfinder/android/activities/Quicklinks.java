@@ -63,27 +63,32 @@ public class Quicklinks extends ListActivity {
 		QuicklinkDataset dataset;
 
 		title = "Tim Horton's @ MacHall";
-		imageId = R.drawable.plus;
+		imageId = R.drawable.coffee;
 		dataset = new QuicklinkDataset(imageId, title, new Point3D(700960.5776, 5662459.9725, 8.0));
 		data.add(dataset);
 
 		title = "Good Earth @ ICT";
-		imageId = R.drawable.plus;
+		imageId = R.drawable.coffee;
 		dataset = new QuicklinkDataset(imageId, title, new Point3D(700994.0805, 5662656.6906, 1));
 		data.add(dataset);
 
 		title = "Fitness Centre";
-		imageId = R.drawable.plus;
+		imageId = R.drawable.runner;
 		dataset = new QuicklinkDataset(imageId, title, new Point3D(700788.8957, 5662392.7682, 4));
 		data.add(dataset);
 
 		title = "Olympic Oval";
-		imageId = R.drawable.plus;
+		imageId = R.drawable.runner;
 		dataset = new QuicklinkDataset(imageId, title, new Point3D(700674.5955, 5662318.9493, 4));
 		data.add(dataset);
 		
+		title = "Squash Court";
+		imageId = R.drawable.runner;
+		dataset = new QuicklinkDataset(imageId, title, new Point3D(700788.8957, 5662392.7682, 4));
+		data.add(dataset);
+		
 		title = "Rogers Store";
-		imageId = R.drawable.plus;
+		imageId = R.drawable.shopping;
 		dataset = new QuicklinkDataset(imageId, title, new Point3D(701081.4262,5662560.9774, 4));
 		data.add(dataset);
 		

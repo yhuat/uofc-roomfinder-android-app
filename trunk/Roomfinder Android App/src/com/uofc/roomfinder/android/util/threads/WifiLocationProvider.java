@@ -16,6 +16,7 @@ import com.uofc.roomfinder.android.util.WiFiScanReceiver;
  */
 public class WifiLocationProvider implements Runnable {
 
+	private static final int WIFI_SCAN_INTERVAL = 5000;
 	boolean running = true;
 	private WifiManager wifi;
 	BroadcastReceiver receiver;
@@ -25,12 +26,12 @@ public class WifiLocationProvider implements Runnable {
 		// enable Wifi receiver
 		receiver = new WiFiScanReceiver();
 		RoomFinderApplication.getAppContext().registerReceiver(receiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-		
+
 		while (running) {
 			try {
-				System.out.println("still running");
+				// System.out.println("still running");
 				DataModel.getInstance().getWifiManager().startScan();
-				Thread.sleep(5000);
+				Thread.sleep(WIFI_SCAN_INTERVAL);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

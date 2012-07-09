@@ -8,7 +8,6 @@ import static com.uofc.roomfinder.android.util.Constants.SPARTIAL_REF_NAD83;
 
 import java.util.Date;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.net.wifi.WifiManager;
 
@@ -17,6 +16,7 @@ import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 
 import com.uofc.roomfinder.android.activities.MapActivity;
+import com.uofc.roomfinder.android.util.Constants.LocationProvider;
 import com.uofc.roomfinder.android.util.CoordinateUtil;
 import com.uofc.roomfinder.android.util.LocationHandler;
 import com.uofc.roomfinder.entities.Point3D;
@@ -31,28 +31,30 @@ public class DataModel {
 	private static DataModel instance = null;
 
 	// location stuff
-	LocationHandler locationHandler;
-	Point currentPositionWgs84;
+	private LocationHandler locationHandler;
+	private LocationProvider lastPositionProvider;
+	private double currentHeight = 0;
 
 	// gps
-	Point3D gpsPosition;
-	double gpsAccuracy;
-	Date gpsTimestamp;
+	private Point3D gpsPosition;
+	private double gpsAccuracy;
+	private Date gpsTimestamp;
 
 	// wifi
-	Point3D wifiPosition;
-	Date wifiTimestamp;
+	private Point3D wifiPosition;
+	private Date wifiTimestamp;
 
 	// wifi stuff
 	private WifiManager wifi;
-	private BroadcastReceiver receiver;
+	// private BroadcastReceiver receiver;
 
 	// map stuff
-	MapActivity mapActivity;
-	Route route;
-	Point3D destinationPoint;
-	String destinationText;
-	int currentSegmentStart; // the current waypoint of the displayed route to start with
+	private MapActivity mapActivity;
+	private Route route;
+	private Point3D destinationPoint;
+	private String destinationText;
+	private int currentSegmentStart; // the current waypoint of the displayed route to start with
+	private boolean updateFloorToCurrentPos = true; // if set, map update thread switches layer according to current position
 
 	// constructor
 	protected DataModel() {
@@ -69,40 +71,6 @@ public class DataModel {
 	}
 
 	// getter&setter
-	public Point getCurrentPositionWGS84() {
-		currentPositionWgs84 = new Point(this.locationHandler.getCurrentLocation().getLongitude(), this.locationHandler.getCurrentLocation().getLatitude(),
-				this.locationHandler.getCurrentLocation().getAltitude());
-
-		return currentPositionWgs84;
-	}
-
-	public void setCurrentPositionWGS84(Point currentPosition) {
-		this.currentPositionWgs84 = currentPosition;
-	}
-
-	public Point getCurrentPositionNAD83() {
-		currentPositionWgs84 = getCurrentPositionWGS84();
-
-		Geometry nad83 = CoordinateUtil.transformGeometryToNAD83(currentPositionWgs84, SpatialReference.create(SPARTIAL_REF_WGS84));
-		return CoordinateUtil.getCenterCoordinateOfGeometry(nad83);
-	}
-
-	public void setCurrentPositionNAD83(Point currentPosition) {
-		Geometry nad83 = CoordinateUtil.transformGeometryToNAD83(currentPositionWgs84, SpatialReference.create(SPARTIAL_REF_WGS84));
-		this.currentPositionWgs84 = CoordinateUtil.getCenterCoordinateOfGeometry(nad83);
-	}
-
-	public int getCurrentSegmentStart() {
-		return currentSegmentStart;
-	}
-
-	public void setCurrentSegmentStart(int currentSegmentStart) {
-		this.currentSegmentStart = currentSegmentStart;
-	}
-
-	public void incrementCurrentSegmentStart() {
-		currentSegmentStart++;
-	}
 
 	public MapActivity getMapActivity() {
 		return mapActivity;
@@ -112,6 +80,16 @@ public class DataModel {
 		this.mapActivity = map;
 	}
 
+	public boolean isUpdateFloorToCurrentPos() {
+		return updateFloorToCurrentPos;
+	}
+
+	public void setUpdateFloorToCurrentPos(boolean updateFloorToCurrentPos) {
+		this.updateFloorToCurrentPos = updateFloorToCurrentPos;
+	}
+
+	// route stuff
+	// ===========
 	public Route getRoute() {
 		return route;
 	}
@@ -143,6 +121,20 @@ public class DataModel {
 		this.destinationText = destinationText;
 	}
 
+	public int getCurrentSegmentStart() {
+		return currentSegmentStart;
+	}
+
+	public void setCurrentSegmentStart(int currentSegmentStart) {
+		this.currentSegmentStart = currentSegmentStart;
+	}
+
+	public void incrementCurrentSegmentStart() {
+		currentSegmentStart++;
+	}
+
+	// location stuff
+	// ==============
 	public LocationHandler getLocationHandler() {
 		if (locationHandler == null) {
 			locationHandler = new LocationHandler();
@@ -162,29 +154,13 @@ public class DataModel {
 		this.wifi = wifi;
 	}
 
-	public Point3D getGpsPosition() {
-		return gpsPosition;
-	}
-
 	public void setGpsPosition(Point3D gpsPosition) {
 		this.gpsPosition = gpsPosition;
 		this.gpsTimestamp = new Date();
 	}
 
-	public double getGpsAccuracy() {
-		return gpsAccuracy;
-	}
-
 	public void setGpsAccuracy(double gpsAccuracy) {
 		this.gpsAccuracy = gpsAccuracy;
-	}
-
-	public Date getGpsTimestamp() {
-		return gpsTimestamp;
-	}
-
-	public Point3D getWifiPosition() {
-		return wifiPosition;
 	}
 
 	public void setWifiPosition(Point3D wifiPosition) {
@@ -192,10 +168,98 @@ public class DataModel {
 		wifiTimestamp = new Date();
 	}
 
-	public Date getWifiTimestamp() {
-		return wifiTimestamp;
+	/**
+	 * is a position available
+	 * 
+	 * @return
+	 */
+	public boolean isCurrentPositionAvailable() {
+		System.out.println("pos available: " + wifiTimestamp == null && gpsTimestamp == null);
+		
+		if (wifiTimestamp == null && gpsTimestamp == null) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
-	
+	/**
+	 * location handling method <br/>
+	 * decides whether the GPS or WiFI location is returned based on data
+	 * 
+	 * @return wgs84 point (google maps spatial reference)
+	 */
+	public Point getCurrentPositionWGS84() {
+
+		// if there is no location fix -> return null
+		if (wifiTimestamp == null && gpsTimestamp == null) {
+			return null;
+		}
+
+		System.out.println("wifi: " + wifiTimestamp + "gpsTS: " + gpsTimestamp);
+
+		// determine best provider
+
+		// if only GPS -> GPS
+		if (wifiTimestamp == null && gpsTimestamp != null) {
+			lastPositionProvider = LocationProvider.GPS;
+
+			// if only WIFI -> WIFI
+		} else if (wifiTimestamp != null && gpsTimestamp == null) {
+			lastPositionProvider = LocationProvider.WIFI;
+
+			// if WIFI newer than GPS -> WIFI
+		} else if (wifiTimestamp.after(gpsTimestamp)) {
+			lastPositionProvider = LocationProvider.WIFI;
+
+			// in any other case -> GPS
+		} else {
+			lastPositionProvider = LocationProvider.GPS;
+		}
+
+		// determine best position
+		Point bestPos = null;
+		if (lastPositionProvider == LocationProvider.WIFI) {
+			bestPos = new Point(this.wifiPosition.getX(), this.wifiPosition.getY());
+			currentHeight = this.wifiPosition.getZ();
+		} else {
+			bestPos = new Point(this.gpsPosition.getX(), this.gpsPosition.getY());
+
+			// if GPS, then z = 0 -> ground layer
+			// GPS signal would return the altitude above sea level (which would be over 1000m for Calgary)
+			currentHeight = 0;
+		}
+		return bestPos;
+	}
+
+	/**
+	 * location handling method decides wether the GPS or WiFI location is returned based on data
+	 * 
+	 * @return nad83 point (arcgis server spatial reference)
+	 */
+	public Point getCurrentPositionNAD83() {
+		Point currentPositionWgs84 = getCurrentPositionWGS84();
+
+		// no location fix yet
+		if (currentPositionWgs84 == null)
+			return null;
+
+		Geometry nad83 = CoordinateUtil.transformGeometryToNAD83(currentPositionWgs84, SpatialReference.create(SPARTIAL_REF_WGS84));
+		return CoordinateUtil.getCenterCoordinateOfGeometry(nad83);
+	}
+
+	/**
+	 * returns the current height <br/>
+	 * each floor counts as 4 meter (main floor is 0m)
+	 * 
+	 * @return
+	 */
+	public double getCurrentHeight() {
+		return currentHeight;
+	}
+
+	public LocationProvider getCurrentLocationProvider() {
+		return lastPositionProvider;
+	}
 
 }

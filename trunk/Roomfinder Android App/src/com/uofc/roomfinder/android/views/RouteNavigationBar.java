@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.uofc.roomfinder.android.DataModel;
+import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.entities.routing.Gradient;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
 
@@ -18,16 +19,14 @@ import android.view.WindowManager;
 
 public class RouteNavigationBar extends View {
 
-	
 	private static final int NAVBAR_TRANSPARENCY = 150; // values: 0-255 (255 = non transparent)
 
-	
 	private static final int NAVBAR_PADDING_VERTICAL_IN_DPI = 0;
 	private static final int NAVBAR_PADDING_HORIZONTAL_IN_DPI = 2;
 	private static final int NAVBAR_IMG_WIDTH_IN_DIP = 38;
 	private static final int NAVBAR_HEIGHT_IN_DPI = 32;
 	private static final int NAVBAR_BORDER_WIDTH_IN_DPI = 1;
-	private static final int NAVBAR_SMALL_SEGMENT_WIDTH_IN_DPI = 40; // smallest width for a navbar segment
+	private static int NAVBAR_SMALL_SEGMENT_WIDTH_IN_DPI = 30; // smallest width for a navbar segment
 
 	// pixel values are calculated in the init method
 	private static int NAVBAR_PADDING_VERTICAL;
@@ -36,12 +35,13 @@ public class RouteNavigationBar extends View {
 	private static int NAVBAR_HEIGHT;
 	private static int NAVBAR_BORDER_WIDTH;
 	private static int NAVBAR_SMALL_SEGMENT_WIDTH;
-	
+
 	private Paint paint = new Paint();
 	private List<RouteSegment> routeSegments;
 	private List<Rect> navbarParts = new LinkedList<Rect>();
 	private int screenWidth;
 	private int activeElement;
+	private int navbarWidth;
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -49,7 +49,7 @@ public class RouteNavigationBar extends View {
 
 		// get navbar width
 		int widthOfImgInPx = NAVBAR_IMG_WIDTH_IN_DIP * (int) getResources().getDisplayMetrics().density;
-		int navbarWidth = (this.screenWidth - (2 * (NAVBAR_PADDING_HORIZONTAL + widthOfImgInPx))) + 2 * NAVBAR_BORDER_WIDTH;
+		navbarWidth = (this.screenWidth - (2 * (NAVBAR_PADDING_HORIZONTAL + widthOfImgInPx))) + 2 * NAVBAR_BORDER_WIDTH;
 		this.setMeasuredDimension(navbarWidth, NAVBAR_HEIGHT + 2 * NAVBAR_BORDER_WIDTH);
 	}
 
@@ -74,10 +74,50 @@ public class RouteNavigationBar extends View {
 		return navbarParts;
 	}
 
+	/**
+	 * increases active element by one
+	 */
+	public void incrementActiveElement() {
+		if (activeElement < DataModel.getInstance().getRoute().getRouteSegments().size() - 1)
+			setActiveElement(activeElement + 1);
+	}
+
+	/**
+	 * decreases active element by one
+	 */
+	public void decrementActiveElement() {
+		if (activeElement > 0)
+			setActiveElement(activeElement - 1);
+	}
+
+	public int getActiveElement(){
+		return activeElement;
+	}
+	
 	public void setActiveElement(int i) {
 		this.activeElement = i;
 		this.invalidate();
 	}
+
+	/**
+	 * returns the active waypoint of the segment
+	 * 
+	 * @return
+	 */
+	public Point3D getActiveWaypoint() {
+		int waypointIndex = DataModel.getInstance().getRoute().getRouteSegments().get(this.activeElement).getEndPathPoint();
+		return DataModel.getInstance().getRoute().getPath().get(waypointIndex);
+	}
+
+	/**
+	 * returns the active segment of the route
+	 * 
+	 * @return
+	 */
+	public RouteSegment getActiveSegment() {
+		return DataModel.getInstance().getRoute().getRouteSegments().get(this.activeElement);
+	}
+	
 
 	// methods
 	private void init() {
@@ -86,7 +126,7 @@ public class RouteNavigationBar extends View {
 		this.screenWidth = display.getWidth();
 
 		int pixelDensity = (int) getResources().getDisplayMetrics().density;
-		
+
 		NAVBAR_PADDING_VERTICAL = NAVBAR_PADDING_VERTICAL_IN_DPI * pixelDensity;
 		NAVBAR_PADDING_HORIZONTAL = NAVBAR_PADDING_HORIZONTAL_IN_DPI * pixelDensity;
 		NAVBAR_IMG_WIDTH = NAVBAR_IMG_WIDTH_IN_DIP * pixelDensity;
@@ -102,7 +142,11 @@ public class RouteNavigationBar extends View {
 	 */
 	public void createNavigationBar(List<RouteSegment> routeSegments) {
 		this.routeSegments = routeSegments;
-		DataModel.getInstance().getMapActivity().enableNavBarLayout();
+		try {
+			DataModel.getInstance().getMapActivity().enableNavBarLayout();
+		} catch (Exception e) {
+		}
+
 		this.invalidate();
 	}
 
@@ -110,6 +154,15 @@ public class RouteNavigationBar extends View {
 	public void onDraw(Canvas canvas) {
 		this.paint = new Paint();
 		this.navbarParts = new LinkedList<Rect>();
+
+		// adapt size of smallest segment if there is a huge amount of segements (ussually occurs if more than 10 segments...)
+		int pixelDensity = (int) getResources().getDisplayMetrics().density;
+		// System.out.println("navbar in dpi: " + (navbarWidth / pixelDensity) + " ,     "+ (navbarWidth / pixelDensity) / this.routeSegments.size() + "     " +
+		// NAVBAR_SMALL_SEGMENT_WIDTH_IN_DPI);
+		if ((navbarWidth / pixelDensity) / this.routeSegments.size() < NAVBAR_SMALL_SEGMENT_WIDTH_IN_DPI) {
+			NAVBAR_SMALL_SEGMENT_WIDTH_IN_DPI = (navbarWidth / pixelDensity) / this.routeSegments.size();
+			NAVBAR_SMALL_SEGMENT_WIDTH = NAVBAR_SMALL_SEGMENT_WIDTH_IN_DPI * pixelDensity;
+		}
 
 		// if segments are set -> draw
 		if (routeSegments != null) {
@@ -132,7 +185,7 @@ public class RouteNavigationBar extends View {
 				}
 			}
 
-			//System.out.println("small segments: " + smallSegmentCounter);
+			// System.out.println("small segments: " + smallSegmentCounter);
 
 			// draw navbar background (used as boarder)
 			paint.setARGB(NAVBAR_TRANSPARENCY, 100, 100, 100);
@@ -171,8 +224,7 @@ public class RouteNavigationBar extends View {
 					currentSegmentWidth = (int) Math.round(segment.getLength() / routeLengthWithoutSmallSegments * navbarWidthWithoutSmallSegments);
 				}
 
-				
-				//System.out.println(currentSegmentWidth + "/" + navbarWidth);
+				// System.out.println(currentSegmentWidth + "/" + navbarWidth);
 
 				left = horizontalOffset;
 				top = NAVBAR_PADDING_VERTICAL + NAVBAR_BORDER_WIDTH;

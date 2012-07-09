@@ -1,5 +1,9 @@
 package com.uofc.roomfinder.android.activities;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -23,6 +27,7 @@ import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.map.MapDrawer;
 import com.uofc.roomfinder.android.util.Constants;
+import com.uofc.roomfinder.android.util.CoordinateUtil;
 import com.uofc.roomfinder.android.util.GisServerUtil;
 import com.uofc.roomfinder.android.views.CampusMapView;
 import com.uofc.roomfinder.android.views.RouteNavigationBar;
@@ -42,6 +47,7 @@ public class MapActivity extends Activity {
 	private LinearLayout info_box_layout;
 	private TextView info_box_text;
 	private ImageView info_box_img;
+	private ImageView info_wifi;
 
 	boolean actualizing = true;
 
@@ -62,6 +68,30 @@ public class MapActivity extends Activity {
 		// set loading screen
 		// this.progressDialog = ProgressDialog.show(this, "", "Please wait....initializing maps.");
 		mapView = (CampusMapView) findViewById(R.id.map);
+
+		// register for nav bar touch events
+		View.OnTouchListener navBarListener = new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				// System.err.println("I've been touched");
+				handleNavBarTouch((int) event.getX(), (int) event.getY());
+				return false;
+			}
+		};
+		findViewById(R.id.nav_bar).setOnTouchListener(navBarListener);
+
+		// register vor nav bar layout touch events (to go to the next and last segment)
+		View.OnTouchListener navBarLayoutListener = new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+
+				handleNavBarLayoutTouch((int) event.getX(), (int) event.getY());
+				return false;
+			}
+
+		};
+		findViewById(R.id.layout_navbar).setOnTouchListener(navBarLayoutListener);
+
 		// mapView.init();
 		DataModel.getInstance().setMap(this);
 
@@ -71,7 +101,7 @@ public class MapActivity extends Activity {
 		// location listener
 		// DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.127575, 51.080126)); //somewhere in MS
 		// DataModel.getInstance().setCurrentPositionNAD83(new Point(701192.8861, 5662659.7696)); //franks office
-		DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.130147, 51.080267)); // franks office
+		// DataModel.getInstance().setCurrentPositionWGS84(new Point(-114.130147, 51.080267)); // franks office
 
 		// System.out.println(DataModel.getInstance().getCurrentPositionNAD83().getX() + ", " + DataModel.getInstance().getCurrentPositionNAD83().getY());
 		//
@@ -82,6 +112,7 @@ public class MapActivity extends Activity {
 		info_box_layout = (LinearLayout) findViewById(R.id.info_box);
 		info_box_text = (TextView) findViewById(R.id.info_txt);
 		info_box_img = (ImageView) findViewById(R.id.info_img);
+		info_wifi = (ImageView) findViewById(R.id.logo_wifi);
 
 		// textBTN
 		txtStatusBar = (TextView) findViewById(R.id.txt_status);
@@ -131,46 +162,18 @@ public class MapActivity extends Activity {
 		});
 	}
 
-	/*
-	 * // set location listener LocationService ls = mapView.getLocationService(); ls.setAutoPan(false); LocationListener locationListener = new
-	 * LocationListener() {
-	 * 
-	 * // Zooms to the current location when first GPS fix arrives public void onLocationChanged(Location loc) { System.out.println("onLocationChange");
-	 * 
-	 * double locy = loc.getLatitude(); double locx = loc.getLongitude(); double locz = loc.getAltitude(); float accuracy = loc.getAccuracy();
-	 * 
-	 * // TODO test locy = 51.080652; locx = -114.129195;
-	 * 
-	 * // save current position in singleton DataModel.getInstance().setCurrentPosition(new RoutePoint(locx, locy));
-	 * 
-	 * // debug print on display txtStatusBar.setText("lat: " + locy + " long: " + locx + "\nalt: " + locz + " acc: " + accuracy + "m");
-	 * 
-	 * // actualize only if accuracy is better than 300m // if (accuracy < 300) { // if (actualizing) { // actualizing = false; Point wgspoint = new Point(locx,
-	 * locy); Point mapPoint = (Point) GeometryEngine.project(wgspoint, SpatialReference.create(Constants.SPARTIAL_REF_MAP), mapView.getSpatialReference());
-	 * Unit mapUnit = mapView.getSpatialReference().getUnit(); //System.out.println(mapUnit); double zoomWidth = Unit.convertUnits(0.08,
-	 * Unit.create(LinearUnit.Code.MILE_US), mapUnit); System.out.println(zoomWidth); Envelope zoomExtent = new Envelope(mapPoint, zoomWidth, zoomWidth);
-	 * mapView.setExtent(zoomExtent); // } }
-	 * 
-	 * @Override public void onProviderDisabled(String provider) { // TODO Auto-generated method stub System.out.println("Doh, no Location service"); }
-	 * 
-	 * @Override public void onProviderEnabled(String provider) { // TODO Auto-generated method stub
-	 * System.out.println("Yeah, we have an enabled location service");
-	 * 
-	 * }
-	 * 
-	 * @Override public void onStatusChanged(String provider, int status, Bundle extras) { // TODO Auto-generated method stub
-	 * System.out.println("location service status update");
-	 * 
-	 * } }; ls.start(); ls.setLocationListener(locationListener);
-	 * 
-	 * LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-	 * locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 1, locationListener);
-	 * locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1, 1, locationListener);
-	 * 
-	 * } } });
-	 * 
-	 * // this.progressDialog.dismiss(); }
-	 */
+	public ImageView getInfo_box_img() {
+		return info_box_img;
+	}
+
+	public void setInfo_box_img(ImageView info_box_img) {
+		this.info_box_img = info_box_img;
+	}
+
+	public ImageView getInfo_wifi() {
+		return info_wifi;
+	}
+
 	@Override
 	protected void onPause() {
 		super.onPause();
@@ -221,14 +224,38 @@ public class MapActivity extends Activity {
 	}
 
 	/**
-	 * handles touches on the display
+	 * handles touch events to the right and left of the navigation bar (left of the bar, decrement active segment and display it)
+	 * 
+	 * @param x
+	 * @param y
 	 */
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
+	private void handleNavBarLayoutTouch(int x, int y) {
 
-		// touch coordinates relative to the map view
-		int touchX = (int) event.getX() - getNavbarOffsetX();
-		int touchY = (int) event.getY() - getMapviewOffsetY();
+		// System.out.println("click: " + x + "y: " + y + ", " + mapNavBar.getNavbarParts().get(0).left);
+		int startOfNavbar = getNavbarOffsetX();
+		int endOfNavbar = getNavbarOffsetX() + mapNavBar.getNavbarParts().get(mapNavBar.getNavbarParts().size() - 1).right;
+
+		if (x < startOfNavbar)
+			this.mapNavBar.decrementActiveElement();
+		else if (x > endOfNavbar)
+			this.mapNavBar.incrementActiveElement();
+
+		try {
+			MapDrawer.displayRouteSegment(this.mapNavBar.getActiveElement());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * handles touch events of the navbar (switch segments by clicking on specific rectangles)
+	 * 
+	 * @param touchX
+	 * @param touchY
+	 */
+	private void handleNavBarTouch(int touchX, int touchY) {
+		// System.out.println(touchX + ", " + touchY);
 
 		// check if touch hit a nav bar rectangle
 		int i = 0;
@@ -243,27 +270,33 @@ public class MapActivity extends Activity {
 			}
 			i++;
 		}
-
-		int eventaction = event.getAction();
-
-		switch (eventaction) {
-		case MotionEvent.ACTION_DOWN:
-			System.out.println("action down");
-			break;
-
-		case MotionEvent.ACTION_MOVE:
-			System.out.println("action move");
-			break;
-
-		case MotionEvent.ACTION_UP:
-			System.out.println("action up");
-
-			break;
-		}
-
-		// tell the system that we handled the event and no further processing is required
-		return true;
 	}
+
+	/**
+	 * handles touches on the display
+	 */
+	/*
+	 * @Override public boolean onTouchEvent(MotionEvent event) {
+	 * 
+	 * // touch coordinates relative to the map view int touchX = (int) event.getX() - getNavbarOffsetX(); int touchY = (int) event.getY() -
+	 * getMapviewOffsetY();
+	 * 
+	 * handleNavBarTouch(touchX, touchY);
+	 * 
+	 * int eventaction = event.getAction();
+	 * 
+	 * switch (eventaction) { case MotionEvent.ACTION_DOWN: System.out.println("action down"); break;
+	 * 
+	 * case MotionEvent.ACTION_MOVE: System.out.println("action move"); break;
+	 * 
+	 * case MotionEvent.ACTION_UP: System.out.println("action up");
+	 * 
+	 * break; }
+	 * 
+	 * // tell the system that we handled the event and no further processing is required return true; }
+	 */
+
+	private MenuItem navArMenuItem;
 
 	/**
 	 * creates option menu out of xml file
@@ -271,7 +304,11 @@ public class MapActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.map_menu, menu);
+		inflater.inflate(R.menu.map_menu_options, menu);
+
+		navArMenuItem = menu.getItem(4);
+		navArMenuItem.setVisible(false);
+
 		return true;
 	}
 
@@ -281,10 +318,23 @@ public class MapActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 
+		// make navbar invisible
+		disableNavBarLayout();
+
 		Intent nextScreen = null;
 
 		switch (item.getItemId()) {
 		case R.id.item_route:
+			// is pos available
+			if (!DataModel.getInstance().isCurrentPositionAvailable()) {
+				Toast.makeText(getApplicationContext(), "No position available yet.", Toast.LENGTH_SHORT).show();
+				break;
+			}
+
+			if (mapNavBar != null) {
+				mapNavBar.setActiveElement(0);
+			}
+
 			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
 			nextScreen.putExtra("requestCode", Constants.SEARCH_ROOM_WITH_ROUTE);
 			startActivityForResult(nextScreen, Constants.SEARCH_ROOM_WITH_ROUTE);
@@ -297,6 +347,17 @@ public class MapActivity extends Activity {
 			break;
 
 		case R.id.item_quicklinks:
+
+			if (mapNavBar != null) {
+				mapNavBar.setActiveElement(0);
+			}
+
+			// is pos available
+			if (!DataModel.getInstance().isCurrentPositionAvailable()) {
+				Toast.makeText(getApplicationContext(), "No position available yet.", Toast.LENGTH_SHORT).show();
+				break;
+			}
+
 			nextScreen = new Intent(getApplicationContext(), Quicklinks.class);
 			startActivityForResult(nextScreen, Constants.QUICKLINKS);
 			break;
@@ -306,16 +367,8 @@ public class MapActivity extends Activity {
 			nextScreen.setAction(Intent.ACTION_VIEW);
 			DataModel m = DataModel.getInstance();
 
-			if (m.getDestinationPoint() == null) {
-				nextScreen.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
-			} else {
-				String uri = m.getDestinationAsWgs84().getJsonUrl() + m.getDestinationText();
-				try {
-					nextScreen.setDataAndType(Uri.parse(UrlReader.stringToUri(uri).toString()), "application/mixare-json");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
+			nextScreen.setDataAndType(Uri.parse(Constants.REST_ANNOTATION_BUILDINGS_URL), "application/mixare-json");
+
 			startActivity(nextScreen);
 			break;
 
@@ -324,6 +377,37 @@ public class MapActivity extends Activity {
 				this.mapView.disableArialImage();
 			} else {
 				this.mapView.enableArialImage();
+			}
+
+			break;
+
+		case R.id.item_nav_ar:
+
+			nextScreen = new Intent();
+			nextScreen.setAction(Intent.ACTION_VIEW);
+
+			if (DataModel.getInstance().getDestinationPoint() != null) {
+
+				Point3D dest = CoordinateUtil.transformToWGS84(DataModel.getInstance().getDestinationPoint());
+				Point3D next = CoordinateUtil.transformToWGS84(mapNavBar.getActiveWaypoint());
+
+				System.out.println("x: " + dest.getX());
+				System.out.println("y: " + dest.getY());
+
+				String url = Constants.REST_ANNOTATION_NAVIGATION_URL + "?next_x=" + next.getX() + "&next_y=" + next.getY() + "&next_z=" + next.getZ()
+						+ "&dest_x=" + dest.getX() + "&dest_y=" + dest.getY() + "&dest_z=" + dest.getZ() + "&next_text="
+						+ mapNavBar.getActiveSegment().getDescription() + "&dest_text=" + DataModel.getInstance().getDestinationText();
+
+				try {
+					System.out.println(UrlReader.stringToUri(url).toString());
+
+					nextScreen.setDataAndType(Uri.parse(UrlReader.stringToUri(url).toString()), "application/mixare-json");
+					startActivity(nextScreen);
+
+				} catch (Exception e) {
+
+					e.printStackTrace();
+				}
 			}
 
 			break;
@@ -417,6 +501,10 @@ public class MapActivity extends Activity {
 	 */
 	public void displayInfoBox(String infoText) {
 		displayInfoBox(infoText, R.drawable.info_icon);
+
+		// user either wants to look at a route or for a searched room
+		// since the searched thing has not to be on his current floor -> disable automatic floor switching
+		DataModel.getInstance().setUpdateFloorToCurrentPos(false);
 	}
 
 	/**
@@ -446,6 +534,34 @@ public class MapActivity extends Activity {
 	 */
 	public void enableNavBarLayout() {
 		findViewById(R.id.layout_navbar).setVisibility(View.VISIBLE);
+
+		try {
+			navArMenuItem.setVisible(true);
+		} catch (Exception e) {
+		}
+
+		// disable floor layer switching, user can now switch layer via the route nav bar
+		DataModel.getInstance().setUpdateFloorToCurrentPos(false);
+	}
+
+	/**
+	 * makes navbar linear layout invisible
+	 */
+	public void disableNavBarLayout() {
+		findViewById(R.id.layout_navbar).setVisibility(View.INVISIBLE);
+		navArMenuItem.setVisible(false);
+	}
+
+	public void showWifiLogo(boolean visible) {
+		if (visible)
+			findViewById(R.id.logo_wifi).setVisibility(View.VISIBLE);
+		else
+			findViewById(R.id.logo_wifi).setVisibility(View.INVISIBLE);
+
+	}
+
+	public ProgressDialog getProgressDialog() {
+		return progressDialog;
 	}
 
 }

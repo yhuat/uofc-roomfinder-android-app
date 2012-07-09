@@ -11,14 +11,25 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
+
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.activities.adapter.MainMenuDataset;
 import com.uofc.roomfinder.android.activities.adapter.MainMenuListAdapter;
 import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.LocationHandler;
+import com.uofc.roomfinder.android.util.Util;
+import com.uofc.roomfinder.android.util.tasks.AddFriend;
+import com.uofc.roomfinder.android.util.tasks.RouteDownloader;
+import com.uofc.roomfinder.util.UrlReader;
 
 public class MainMenu extends ListActivity {
 
@@ -32,6 +43,7 @@ public class MainMenu extends ListActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
+		// activity layout
 		super.onCreate(savedInstanceState);
 		setTheme(android.R.style.Theme_Translucent_NoTitleBar);
 		setContentView(R.layout.menu_main);
@@ -44,52 +56,126 @@ public class MainMenu extends ListActivity {
 		setListAdapter(adapter);
 		getListView().setTextFilterEnabled(true);
 
+		// do basic init stuff
+		initRoomfinderApplication();
+
+	}
+
+	/**
+	 * 
+	 */
+	private void initRoomfinderApplication() {
 		// init LocationHandler
 		DataModel.getInstance().setLocationHandler(new LocationHandler());
 
 		// init WifiManager
 		DataModel.getInstance().setWifiManager((WifiManager) getSystemService(Context.WIFI_SERVICE));
-		
-		//check if device has internet access
-		if (!isOnline()){
-			AlertDialog ad = new AlertDialog.Builder(this).create();  
-			ad.setCancelable(false); // This blocks the 'BACK' button  
-			ad.setMessage("There is no internet connection available!");  
-			ad.setButton("Exit App", new DialogInterface.OnClickListener() {  
-			    @Override  
-			    public void onClick(DialogInterface dialog, int which) {  
-			        dialog.dismiss();  
-			        System.exit(0);
-			    }  
-			});  
-			ad.show(); 
+
+		// check if device has internet access
+		if (!isOnline()) {
+			AlertDialog ad = new AlertDialog.Builder(this).create();
+			ad.setCancelable(false); // This blocks the 'BACK' button
+			ad.setMessage("There is no internet connection available!");
+			ad.setButton("Exit App", new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					System.exit(0);
+				}
+			});
+			ad.show();
 		}
-		
 
-//		first start ask users name
-//		new AlertDialog.Builder(Main.this)
-//        .setTitle("Enter password")
-//        .setMessage("Password required for this function")
-//        .setView(/* You view layout */)
-//        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-//            public void onClick(DialogInterface dialog, int whichButton) {
-//                Editable value = input.getText(); 
-//            }
-//        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//            public void onClick(DialogInterface dialog, int whichButton) {
-//                // Do nothing.
-//            }
-//        }).show();
+		// ask for user name on first launch
+		if (Util.loadUsername() == null) {
+			showUserNamePopup();
+		} else {
+			System.out.println(Util.loadUsername());
+		}
 
+	}
+
+	/**
+	 * creates option menu out of xml file
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_menu_options, menu);
+		return true;
+	}
+
+	/**
+	 * shows an alert dialogue asking for the user name
+	 */
+	private void showUserNamePopup() {
+		// create alert dialog
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+		// set texts
+		alert.setTitle("Enter a nickname");
+		alert.setMessage("This name is used for the social features.");
+		alert.setCancelable(false);
+
+		// Set an EditText view to get user input
+		final EditText input = new EditText(this);
+		alert.setView(input);
+
+		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				String value = input.getText().toString();
+				System.out.println("value: " + value);
+				Util.saveUsername(value);
+			}
+		});
+
+		// alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		// public void onClick(DialogInterface dialog, int whichButton) {
+		// // Canceled.
+		// }
+		// });
+
+		alert.show();
+	}
+
+	/**
+	 * shows an alert dialogue asking for the user name
+	 */
+	private void showAddFriendPopup() {
+		// create alert dialog
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+		// set texts
+		alert.setTitle("Add friend");
+		alert.setMessage("Enter friend's name (your name is \"" + Util.loadUsername() + "\")");
+		alert.setCancelable(false);
+
+		// Set an EditText view to get user input
+		final EditText input = new EditText(this);
+		alert.setView(input);
+
+		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				String value = input.getText().toString();
+				new AddFriend().execute(Util.loadUsername(), value);
+			}
+		});
+
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				// Canceled.
+			}
+		});
+
+		alert.show();
 	}
 
 	public boolean isOnline() {
-	    ConnectivityManager cm =  (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
-	    return cm.getActiveNetworkInfo() != null && 
-	       cm.getActiveNetworkInfo().isConnectedOrConnecting();
+		return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnectedOrConnecting();
 	}
-	
+
 	@Override
 	public void onListItemClick(ListView parent, View v, int position, long id) {
 
@@ -97,6 +183,12 @@ public class MainMenu extends ListActivity {
 
 		switch (position) {
 		case MENUITEM_DIRECTION:
+			// is pos available
+			if (!DataModel.getInstance().isCurrentPositionAvailable()) {
+				Toast.makeText(getApplicationContext(), "No position available yet.", Toast.LENGTH_SHORT).show();
+				break;
+			}
+
 			nextScreen = new Intent(getApplicationContext(), SearchForm.class);
 			nextScreen.putExtra("requestCode", Constants.SEARCH_ROOM_WITH_ROUTE);
 			startActivityForResult(nextScreen, Constants.SEARCH_ROOM_WITH_ROUTE);
@@ -196,12 +288,24 @@ public class MainMenu extends ListActivity {
 		dataset = new MainMenuDataset(imageId, title, detail);
 		data.add(dataset);
 
-		title = "Wifi Location";
-		detail = "only for testing";
-		imageId = R.drawable.compass_icon;
-		dataset = new MainMenuDataset(imageId, title, detail);
-		data.add(dataset);
+	}
 
+	/**
+	 * handles option menu inputs
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+		switch (item.getItemId()) {
+		case R.id.item_add_friend:
+
+			break;
+		case R.id.item_change_name:
+			showUserNamePopup();
+			break;
+		}
+
+		return true;
 	}
 
 }

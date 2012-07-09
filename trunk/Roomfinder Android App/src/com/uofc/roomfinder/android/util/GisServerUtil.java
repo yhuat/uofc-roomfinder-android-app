@@ -72,6 +72,7 @@ public class GisServerUtil {
 
 		// get Route of NA server
 		Point startPoint = DataModel.getInstance().getCurrentPositionNAD83();
+		double startHeight = DataModel.getInstance().getCurrentHeight();
 		Point endPoint = CoordinateUtil.getCenterCoordinateOfGeometry(grs[0].getGeometry());
 
 		// build destination point for route
@@ -79,7 +80,7 @@ public class GisServerUtil {
 		Point3D routeEnd = new Point3D(endPoint.getX(), endPoint.getY(), CoordinateUtil.getZCoordFromFloor(floorResult));
 
 		// start async thread for downloading route
-		new RouteDownloader().execute(routeStart, routeEnd, impedance);
+		new RouteDownloader().execute(routeStart, routeEnd, impedance, startHeight);
 		
 		// set destination to data model
 		DataModel.getInstance().setDestinationPoint(routeEnd);
@@ -97,10 +98,11 @@ public class GisServerUtil {
 
 		// build destination point for route
 		Point3D routeStart = new Point3D(startPoint.getX(), startPoint.getY());
+		double startHeight = DataModel.getInstance().getCurrentHeight();
 		Point3D routeEnd = new Point3D(endPoint.getX(), endPoint.getY(), endPoint.getZ());
 
 		// start async thread for downloading route
-		new RouteDownloader().execute(routeStart, routeEnd, impedance);
+		new RouteDownloader().execute(routeStart, routeEnd, impedance, startHeight);
 		
 		// set destination to data model
 		DataModel.getInstance().setDestinationPoint(routeEnd);
@@ -139,7 +141,11 @@ public class GisServerUtil {
 		DataModel.getInstance().setDestinationPoint(routeEnd);
 
 		// display result as an info box on map view
-		DataModel.getInstance().getMapActivity().displayInfoBox(building + " " + room + "\n" + DataModel.getInstance().getDestinationText());
+		String infoText = building + " " + room;
+		if (DataModel.getInstance().getDestinationText() != null){
+			infoText += "\n" + DataModel.getInstance().getDestinationText();
+		}
+		DataModel.getInstance().getMapActivity().displayInfoBox(infoText);
 	}
 
 }

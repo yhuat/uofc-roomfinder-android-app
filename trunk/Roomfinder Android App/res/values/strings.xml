@@ -2,11 +2,10 @@
 <resources>
 
     <string name="app_name">UofC Roomfinder</string>
-    
+
     <!-- MapActivity -->
     <string name="map_btn_text">search for a room</string>
     <string name="map_txt_initial_status">lat: long: alt: acc:</string>
-    
 
     <!-- SearchForm -->
     <string name="search_room1">ICT</string>
@@ -17,30 +16,26 @@
         <item>@string/search_room2</item>
     </string-array>
 
+    <string name="quicklinks_head">Quicklinks</string>
     <string name="search_head">Search Form</string>
     <string name="search_input_field">What are you searching for?</string>
     <string name="search_under_input_field">You can search for rooms and staff (e.g. \'Frank Maurer\' or \'ICT 550\')</string>
     <string name="search_results">Search results</string>
-    
     <string name="search_btn_search">Search</string>
     <string name="search_spinner_text">select building</string>
-    
-    <!-- impedance-->
-    <string name="search_impedance">Routing options</string>
 
+    <!-- impedance -->
+    <string name="search_impedance">Routing options</string>
     <string name="impedance1">Shortest Path</string>
     <string name="impedance2">Avoid Indoor</string>
     <string name="impedance3">Avoid Outdoor</string>
     <string name="impedance4">Avoid Stairs</string>
-    
+
     <string-array name="search_impedance_list">
         <item>@string/impedance1</item>
         <item>@string/impedance2</item>
         <item>@string/impedance3</item>
         <item>@string/impedance4</item>
     </string-array>
-    
 
-    
-    
 </resources>

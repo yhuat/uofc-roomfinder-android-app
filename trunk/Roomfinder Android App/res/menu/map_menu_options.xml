@@ -14,11 +14,17 @@
      
     <item
         android:id="@+id/item_ar"
-        android:title="augment my reality"/>
+        android:title="explore mode"/>
+    
+    <item
+        android:id="@+id/item_nav_ar"
+        android:title="augmented navigation"
+        />
     
      <item
         android:id="@+id/item_arial_toggle"
-        android:title="toggle arial image"/>
+        android:title="toggle arial image"
+        android:visible="false"/>
 
     <!-- android:icon="@drawable/icon" -->
 

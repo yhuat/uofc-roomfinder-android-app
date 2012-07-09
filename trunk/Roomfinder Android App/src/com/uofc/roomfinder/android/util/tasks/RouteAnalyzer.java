@@ -27,6 +27,7 @@ import com.uofc.roomfinder.entities.routing.Gradient;
 import com.uofc.roomfinder.entities.routing.Route;
 import com.uofc.roomfinder.entities.routing.RouteFeature;
 import com.uofc.roomfinder.entities.routing.RouteSegment;
+import com.uofc.roomfinder.util.Util;
 
 public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 
@@ -87,11 +88,8 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 	@Override
 	protected void onPostExecute(FeatureSet result) {
 
-		System.out.println("route analyzer result size: " + result.getGraphics().length);
-		for (Graphic building : result.getGraphics()) {
-
-			System.out.println("--> " + (String) building.getAttributeValue(com.uofc.roomfinder.android.util.Constants.QUERY_BUILDING_COL_ID));
-		}
+		if (result == null)
+			return;
 
 		try {
 
@@ -208,7 +206,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 			// in which building is the current waypoint
 			currentSegmentLocation = determineContainingBuilding(buildings, new Point(currentWayPoint.getX(), currentWayPoint.getY()));
 			newSegmentLocation = determineContainingBuilding(buildings, new Point(nextWaypoint.getX(), nextWaypoint.getY()));
-			System.out.println("cur" + currentSegmentLocation + " next " + newSegmentLocation);
+			// System.out.println("cur" + currentSegmentLocation + " next " + newSegmentLocation);
 
 			// on height change (if not outside)
 			// =================
@@ -219,6 +217,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 				if (nextWaypoint.getZ() < currentWayPoint.getZ() && currentGradient != Gradient.DOWN) {
 					nextGradient = Gradient.DOWN;
 					setNewSegment = true;
+
 				}
 
 				// now it's going up (was before: neutral or downstairs)
@@ -234,14 +233,18 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 				setNewSegment = true;
 			}
 
-			// on entering a building
+			// on entering or leaving a building
 			// =======================
 			if (!currentSegmentLocation.equals(newSegmentLocation)) {
 				setNewSegment = true;
-				newSegmentText = "entering building " + newSegmentLocation;
+				if (newSegmentLocation.equals("outside")) {
+					newSegmentText = "Leave building";
+				} else {
+					newSegmentText = "Enter " + newSegmentLocation;
+				}
 			}
 
-			System.out.println(currentWayPoint.getZ() + " - " + currentGradient + " - loc " + currentSegmentLocation);
+			// System.out.println(currentWayPoint.getZ() + " - " + currentGradient + " - loc " + currentSegmentLocation);
 
 			if (setNewSegment) {
 				System.out.println("->split");
@@ -266,21 +269,18 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 
 		// set last segment (to destination)
 		route.getRouteSegments().add(
-				new RouteSegment(lastSegmentPathPoint, route.getPath().size() - 1, "segment to destination", currentGradient, line.calculateLength2D()));
+				new RouteSegment(lastSegmentPathPoint, route.getPath().size() - 1, "Destination", currentGradient, line.calculateLength2D()));
 
 		for (int i = 0; i < route.getRouteSegments().size(); i++) {
 			RouteSegment start = route.getRouteSegments().get(i);
-			System.out.println(i + ": start: " + start.getStartPathPoint() + " end: " + start.getEndPathPoint());
+			// System.out.println(i + ": start: " + start.getStartPathPoint() + " end: " + start.getEndPathPoint());
 		}
 
 		System.out.println("segments before cleanup: " + route.getRouteSegments().size());
 		cleanupSegments(route);
 		System.out.println("segments after cleanup: " + route.getRouteSegments().size());
 
-		for (int i = 0; i < route.getRouteSegments().size(); i++) {
-			RouteSegment start = route.getRouteSegments().get(i);
-			System.out.println(i + ": start: " + start.getStartPathPoint() + " end: " + start.getEndPathPoint());
-		}
+		updateDescriptions(route);
 
 		System.out.println("segment splitting done. splitted in " + route.getRouteSegments().size() + " parts");
 	}
@@ -310,6 +310,40 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 		}
 	}
 
+	private static void updateDescriptions(Route route) {
+
+		for (int i = 1; i < route.getRouteSegments().size() - 1; i++) {
+			// has to start with UP
+			if (route.getRouteSegments().get(i).getGradient() == Gradient.UP || route.getRouteSegments().get(i).getGradient() == Gradient.DOWN) {
+				// followed by NEUTRAL
+				if (route.getRouteSegments().get(i + 1).getGradient() == Gradient.NEUTRAL) {
+
+					// determine destination floor name
+					String floor = "";
+					long lngFloor = (long) route.getPath().get(route.getRouteSegments().get(i + 1).getStartPathPoint()).getZ();
+					if (lngFloor % 4 == 0) {
+						long longFloor = lngFloor / 4 + 1;
+						floor = Util.rPad("" + longFloor, 2, '0');
+					}
+
+					String newText = "Go to floor " + floor;
+					route.getRouteSegments().get(i).setDescription(newText);
+				}
+			}
+		}
+
+		for (int i = 1; i < route.getRouteSegments().size() - 1; i++) {
+			// followed by NEUTRAL
+			if (route.getRouteSegments().get(i).getGradient() == Gradient.NEUTRAL) {
+				// has to start with UP
+				if (route.getRouteSegments().get(i + 1).getGradient() == Gradient.UP || route.getRouteSegments().get(i).getGradient() == Gradient.DOWN) {
+					String newText = "Go to elevator/staircases";
+					route.getRouteSegments().get(i).setDescription(newText);
+				}
+			}
+		}
+	}
+
 	/**
 	 * merges route segments to one segment has to be done, because na server messes up some routes
 	 * 
@@ -324,7 +358,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 		// add segments to start segment
 		for (int i = startSegmentIndex + 1; i <= startSegmentIndex + segmentCountsToMerge; i++) {
 			additionalSegment = route.getRouteSegments().get(i);
-			System.out.println("adding segment " + i + " to segment " + startSegmentIndex + "with endPoint: " + additionalSegment.getEndPathPoint());
+			// System.out.println("adding segment " + i + " to segment " + startSegmentIndex + "with endPoint: " + additionalSegment.getEndPathPoint());
 
 			// add values to start segment
 			start.addLength(additionalSegment.getLength());
@@ -335,7 +369,7 @@ public class RouteAnalyzer extends AsyncTask<Object, Void, FeatureSet> {
 
 		for (int i = 0; i < route.getRouteSegments().size(); i++) {
 			RouteSegment tmp = route.getRouteSegments().get(i);
-			System.out.println(i + ": start: " + tmp.getStartPathPoint() + " end: " + tmp.getEndPathPoint());
+			// System.out.println(i + ": start: " + tmp.getStartPathPoint() + " end: " + tmp.getEndPathPoint());
 		}
 
 		// delete segments

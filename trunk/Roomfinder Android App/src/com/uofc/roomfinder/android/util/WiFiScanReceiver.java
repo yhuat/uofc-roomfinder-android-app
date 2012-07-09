@@ -18,7 +18,6 @@ public class WiFiScanReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context c, Intent intent) {
-		System.out.println("wifi signals received");
 
 		List<ScanResult> results = DataModel.getInstance().getWifiManager().getScanResults();
 		String macAdresses = "";
@@ -30,7 +29,7 @@ public class WiFiScanReceiver extends BroadcastReceiver {
 
 			// each mac address of the listed access points ends with a "0", every other mac address is just a fake address for other a other SSID
 			if (result.BSSID.endsWith("0")) {
-				System.out.println("bssid: " + result.BSSID + ", SSID: " + result.SSID + ", power: " + result.level + ", frequ: " + result.frequency);
+				// System.out.println("bssid: " + result.BSSID + ", SSID: " + result.SSID + ", power: " + result.level + ", frequ: " + result.frequency);
 				macAdresses += result.BSSID + ",";
 				powerLevels += result.level + ",";
 				frequencies += result.frequency + ",";
