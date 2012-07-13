@@ -372,14 +372,14 @@ public class MapActivity extends Activity {
 			startActivity(nextScreen);
 			break;
 
-		case R.id.item_arial_toggle:
-			if (this.mapView.isArialEnabled()) {
-				this.mapView.disableArialImage();
-			} else {
-				this.mapView.enableArialImage();
-			}
-
-			break;
+//		case R.id.item_arial_toggle:
+//			if (this.mapView.isArialEnabled()) {
+//				this.mapView.disableArialImage();
+//			} else {
+//				this.mapView.enableArialImage();
+//			}
+//
+//			break;
 
 		case R.id.item_nav_ar:
 

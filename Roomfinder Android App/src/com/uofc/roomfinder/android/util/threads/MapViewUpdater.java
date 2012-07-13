@@ -62,13 +62,22 @@ public class MapViewUpdater implements Runnable {
 		Point currentPos = DataModel.getInstance().getCurrentPositionNAD83();
 		currentProvider = DataModel.getInstance().getCurrentLocationProvider();
 
+		System.out.println(currentProvider);
+		System.out.println(currentPos);
+
+		// gps accuracy based
+
 		// if location is set go on, else quit
 		if (currentPos == null)
 			return;
-		if (currentPos.getX() == 0)
-			return;
 
-		//System.out.println("gps pos" + currentPos.getX());
+		// is there a value for x?
+		try {
+			if (currentPos.getX() == 0)
+				return;
+		} catch (Exception e) {
+			return;
+		}
 
 		Graphic graphic;
 
