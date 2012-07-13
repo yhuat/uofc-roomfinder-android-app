@@ -2,29 +2,23 @@
 
     <item
         android:id="@+id/item_route"
-        android:title="directions to..."/>
-    
-        <item
+        android:title="Directions to..."/>
+    <item
         android:id="@+id/item_search_room"
-        android:title="search room"/>
-    
-     <item
+        android:title="Search"/>
+    <item
         android:id="@+id/item_quicklinks"
-        android:title="quicklinks"/>
-     
+        android:title="Quick Routes"/>
     <item
         android:id="@+id/item_ar"
-        android:title="explore mode"/>
-    
+        android:title="Explore"/>
     <item
         android:id="@+id/item_nav_ar"
-        android:title="augmented navigation"
-        />
-    
-     <item
+        android:title="Augmented Navigation"/>
+    <!--<item
         android:id="@+id/item_arial_toggle"
-        android:title="toggle arial image"
-        android:visible="false"/>
+        android:title="Satellite View"
+        android:visible="false"/> -->
 
     <!-- android:icon="@drawable/icon" -->
 

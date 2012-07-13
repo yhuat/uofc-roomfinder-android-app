@@ -200,6 +200,8 @@ public class DataModel {
 
 		// determine best provider
 
+		
+		
 		// if only GPS -> GPS
 		if (wifiTimestamp == null && gpsTimestamp != null) {
 			lastPositionProvider = LocationProvider.GPS;
@@ -211,11 +213,25 @@ public class DataModel {
 			// if WIFI newer than GPS -> WIFI
 		} else if (wifiTimestamp.after(gpsTimestamp)) {
 			lastPositionProvider = LocationProvider.WIFI;
-
+			
+			//time difference between gps and wifi location fix (in seconds)
+			//if > 0 GPS is newer
+			long diffGpsToWifi = (gpsTimestamp.getTime() - wifiTimestamp.getTime() /1000);
+			
+			// prefer GPS, that means even if there is a newer wifi signal, take the GPS signal if the accuracy is good enough
+			if (diffGpsToWifi > -10 && gpsAccuracy < 20){
+				lastPositionProvider = LocationProvider.GPS;
+			}
+			
 			// in any other case -> GPS
-		} else {
+		} else {			
 			lastPositionProvider = LocationProvider.GPS;
 		}
+		
+
+		
+		
+		
 
 		// determine best position
 		Point bestPos = null;
