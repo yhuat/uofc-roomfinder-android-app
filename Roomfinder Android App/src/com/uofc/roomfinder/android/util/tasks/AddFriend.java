@@ -1,16 +1,10 @@
 package com.uofc.roomfinder.android.util.tasks;
 
-import org.mixare.R;
-
 import android.os.AsyncTask;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.RoomFinderApplication;
 import com.uofc.roomfinder.android.util.Constants;
-import com.uofc.roomfinder.entities.Point3D;
 import com.uofc.roomfinder.util.UrlReader;
 
 public class AddFriend extends AsyncTask<String, Void, String> {

@@ -1,7 +1,5 @@
 package com.uofc.roomfinder.android.util.threads;
 
-import android.view.View;
-
 import com.esri.core.geometry.Point;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleMarkerSymbol;
@@ -94,6 +92,7 @@ public class MapViewUpdater implements Runnable {
 
 		// show wifi logo
 		DataModel.getInstance().getMapActivity().runOnUiThread(new Runnable() {
+			@Override
 			public void run() {
 				if (MapViewUpdater.this.currentProvider == LocationProvider.GPS) {
 					DataModel.getInstance().getMapActivity().showWifiLogo(false);

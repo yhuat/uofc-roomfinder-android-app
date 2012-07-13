@@ -1,6 +1,5 @@
 package com.uofc.roomfinder.android.util.tasks;
 
-import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
