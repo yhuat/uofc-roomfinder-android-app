@@ -25,14 +25,12 @@ import org.mixare.data.DataSource;
 import org.mixare.gui.PaintScreen;
 import org.mixare.gui.TextObj;
 
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Path;
 import android.location.Location;
-import android.sax.RootElement;
 
 /**
  * This markers represent the points of interest. On the screen they appear as circles, since this class inherits the draw method of the Marker.
@@ -106,7 +104,7 @@ public class FriendMarker extends Marker {
 			textStr = title + "\n (" + df.format(d) + "km)";
 		}
 
-		//textBlock = new TextObj(textStr, Math.round(maxHeight / 2f) + 1, 250, dw, underline);
+		// textBlock = new TextObj(textStr, Math.round(maxHeight / 2f) + 1, 250, dw, underline);
 		textBlock = new TextObj(textStr, 20, 250, dw, underline);
 
 		if (isVisible) {
@@ -143,13 +141,12 @@ public class FriendMarker extends Marker {
 			friendSymbol = Bitmap.createBitmap(friendSymbol, 0, 0, width, height, matrix, false);
 
 			// canvas.drawColor(Color.BLACK);
-			dw.paintBitmap(friendSymbol, signMarker.x, signMarker.y, currentAngle + 90);
+			dw.paintBitmap(friendSymbol, signMarker.x, signMarker.y - 200, currentAngle + 90);
 
-			
-			//dw.paintCircle((cMarker.x), (cMarker.y), (float) 5);
-			
+			// dw.paintCircle((cMarker.x), (cMarker.y), (float) 5);
+
 			// dw.paintBitmap(bitmap, left, top)
-			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + (maxHeight + 40), currentAngle + 90, 1);
+			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + (maxHeight + 40) - 200, currentAngle + 90, 1);
 			// dw.paintObj(txtLab, signMarker.x , signMarker.y , currentAngle + 90, 1);
 
 		}

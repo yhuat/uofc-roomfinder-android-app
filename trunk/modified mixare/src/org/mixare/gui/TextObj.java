@@ -41,8 +41,6 @@ public class TextObj implements ScreenObj {
 
 	public TextObj(String txtInit, float fontSizeInit, float maxWidth, PaintScreen dw, boolean underline) {
 
-		
-
 		this(txtInit, fontSizeInit, maxWidth, Color.rgb(255, 255, 255), Color.argb(128, 0, 0, 0), Color.rgb(255, 255, 255), Color.argb(64, 0, 0, 0), dw
 				.getTextAsc() / 2, dw, underline);
 	}
@@ -83,7 +81,22 @@ public class TextObj implements ScreenObj {
 		int prevEnd = start;
 		while (end != BreakIterator.DONE) {
 			String line = txt.substring(start, end);
+
+			try {
+				if (txt.charAt(start-1) == '(') {
+					start -= 1;
+				}
+				if (txt.charAt(prevEnd) == '(') {
+					prevEnd -= 1;
+				}
+			} catch (Exception e) {
+			}
+
 			String prevLine = txt.substring(start, prevEnd);
+			if (prevLine.endsWith(" (")){
+				prevLine = prevLine.substring(0, prevLine.length()-2);
+			}
+			
 			float lineWidth = dw.getTextWidth(line);
 
 			if (lineWidth > areaWidth) {

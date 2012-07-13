@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.mixare.R.drawable;
 import org.mixare.data.DataHandler;
 import org.mixare.data.DataSourceList;
 import org.mixare.gui.PaintScreen;
@@ -54,7 +53,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -472,10 +470,10 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 		int base = Menu.FIRST;
 
 		/* define the first */
-		menu.add(base, 1, base, "Where are my friends?");
-		menu.add(base, 2, base, "Show nearby buildings!");
-		menu.add(base, 3, base, "show Graffiti");
-		menu.add(base, 4, base, "draw graffiti");
+		menu.add(base, 1, base, "Friends");
+		menu.add(base, 2, base, "Buildings");
+		menu.add(base, 3, base, "Graffiti");
+		menu.add(base, 4, base, "Write something");
 
 		return true;
 	}
@@ -533,6 +531,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			alert.setView(input);
 
 			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				@Override
 				public void onClick(DialogInterface dialog, int whichButton) {
 					String value = input.getText().toString();
 					System.out.println("graffiti: " + value);
@@ -543,6 +542,7 @@ public class MixView extends Activity implements SensorEventListener, OnTouchLis
 			});
 
 			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				@Override
 				public void onClick(DialogInterface dialog, int whichButton) {
 					// Canceled.
 				}
@@ -1031,7 +1031,7 @@ class AugmentedView extends View {
 
 			int i = 0;
 			
-			System.out.println("active marker count: " + MixView.dataView.getDataHandler().getMarkerList().size());
+			//System.out.println("active marker count: " + MixView.dataView.getDataHandler().getMarkerList().size());
 			
 			// draw every 3 times
 			if (i++ % 3 == 0) {

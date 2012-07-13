@@ -1,10 +1,8 @@
 package org.mixare;
 
-import org.mixare.R;
 import org.mixare.data.UrlReader;
 
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 public class AddGraffiti extends AsyncTask<String, Void, String> {
 

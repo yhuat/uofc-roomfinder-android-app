@@ -221,7 +221,9 @@ abstract public class Marker implements Comparable<Marker> {
 			//draw circle with radius depending on distance
 			//0.44 is approx. vertical fov in radians 
 			double angle = 2.0*Math.atan2(10,distance);
+			//double angle = 0.6;//2.0*Math.atan2(10,distance);
 			double radius = Math.max(Math.min(angle/0.44 * maxHeight, maxHeight),maxHeight/25f);
+			//double radius = Math.max(Math.min(angle/0.44 * maxHeight, maxHeight),maxHeight/25f);
 			//double radius = angle/0.44d * (double)maxHeight;
 			
 			dw.paintCircle(cMarker.x, cMarker.y, (float)radius);
@@ -238,11 +240,11 @@ abstract public class Marker implements Comparable<Marker> {
 		double d = distance;
 		DecimalFormat df = new DecimalFormat("@#");
 		if(d<1000.0) {
-			textStr = title + " ("+ df.format(d) + "m)";			
+			textStr = title + "    ("+ df.format(d) + "m)";			
 		}
 		else {
 			d=d/1000.0;
-			textStr = title + " (" + df.format(d) + "km)";
+			textStr = title + "    (" + df.format(d) + "km)";
 		}
 		
 		textBlock = new TextObj(textStr, Math.round(maxHeight / 2f) + 1,
@@ -290,6 +292,7 @@ abstract public class Marker implements Comparable<Marker> {
 		ID = iD;
 	}
 
+	@Override
 	public int compareTo(Marker another) {
 
 		Marker leftPm = this;
@@ -341,6 +344,7 @@ class Label implements ScreenObj {
 		height = h * 2;
 	}
 
+	@Override
 	public void paint(PaintScreen dw) {
 		dw.paintObj(obj, x, y, 0, 1);
 	}
@@ -353,10 +357,12 @@ class Label implements ScreenObj {
 		return y;
 	}
 
+	@Override
 	public float getWidth() {
 		return width;
 	}
 
+	@Override
 	public float getHeight() {
 		return height;
 	}

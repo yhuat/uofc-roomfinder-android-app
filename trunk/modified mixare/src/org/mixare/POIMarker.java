@@ -91,25 +91,22 @@ public class POIMarker extends Marker {
 		String textStr = "";
 
 		double d = distance;
-		DecimalFormat df = new DecimalFormat("@#");
+		DecimalFormat df = new DecimalFormat("#");
 		if (d < 1000.0) {
-			textStr = title + "\n (" + df.format(d) + "m)";
+			textStr = title + " (" + (int) d + "m)";
 		} else {
 			d = d / 1000.0;
-			textStr = title + "\n (" + df.format(d) + "km)";
+			textStr = title + " (" + df.format(d) + "km)";
 		}
 
 		textBlock = new TextObj(textStr, 28, 250, dw, underline);
 
 		if (isVisible) {
 			// based on the distance set the colour
-			if (distance < 100.0) {
-				textBlock.setBgColor(Color.argb(180, 52, 52, 52));
-				textBlock.setBorderColor(Color.rgb(255, 104, 91));
-			} else {
-				textBlock.setBgColor(Color.argb(180, 0, 0, 0));
-				textBlock.setBorderColor(Color.rgb(255, 255, 255));
-			}
+
+			textBlock.setBgColor(Color.argb(180, 0, 0, 0));
+			textBlock.setBorderColor(Color.rgb(255, 255, 255));
+
 			// dw.setColor(DataSource.getColor(type));
 
 			float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y, signMarker.x, signMarker.y);
@@ -117,8 +114,7 @@ public class POIMarker extends Marker {
 			dw.setStrokeWidth(1f);
 			dw.setFill(true);
 			// dw.paintObjectBottom(txtLab, dw.getWidth()/2 - txtLab.getWidth() / 2, (float) (dw.getHeight() * 0.75), currentAngle + 90, 1);
-			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + maxHeight, currentAngle + 90, 1);
-
+			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + maxHeight - 200, currentAngle + 90, 1);
 		}
 	}
 
