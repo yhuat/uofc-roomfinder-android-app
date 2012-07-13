@@ -74,7 +74,8 @@ public class DataView {
 	/**
 	 * ROOMFINDER STUFF
 	 */
-	public static final String ROOMFINDER_SERVER_URL = "http://192.168.1.103:8080/UofC_Roomfinder_Server/rest";
+	//public static final String ROOMFINDER_SERVER_URL = "http://192.168.1.103:8080/UofC_Roomfinder_Server/rest";
+	public final static String ROOMFINDER_SERVER_URL = "http://ec2-23-20-196-109.compute-1.amazonaws.com:8080/UofC_Roomfinder_Server/rest";
 	public static final String REST_ANNOTATION_BUILDINGS_URL = ROOMFINDER_SERVER_URL + "/annotation/cat/buildings";
 	public static final String REST_ANNOTATION_FRIENDS_URL = ROOMFINDER_SERVER_URL + "/annotation/cat/friends/username";
 	public static final String REST_ANNOTATION_GRAFFITI_URL = ROOMFINDER_SERVER_URL + "/annotation/cat/graffiti";
@@ -226,7 +227,7 @@ public class DataView {
 
 	public void requestData(DataSource datasource, double lat, double lon, double alt, float radius, String locale) {
 		DownloadRequest request = new DownloadRequest();
-		request.params = "";//datasource.createRequestParams(lat, lon, alt, radius, locale);
+		request.params = "";// datasource.createRequestParams(lat, lon, alt, radius, locale);
 		request.source = datasource;
 
 		mixContext.getDownloader().submitJob(request);
@@ -329,7 +330,10 @@ public class DataView {
 				// ma.update(curFix);
 				if (!frozen)
 					ma.calcPaint(cam, addX, addY);
-				ma.draw(dw);
+
+				
+					ma.draw(dw);
+				
 			}
 		}
 

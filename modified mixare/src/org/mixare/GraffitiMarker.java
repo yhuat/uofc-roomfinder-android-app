@@ -20,9 +20,6 @@
 package org.mixare;
 
 import java.text.DecimalFormat;
-import java.util.Date;
-import java.util.Random;
-
 import org.mixare.data.DataSource;
 import org.mixare.gui.PaintScreen;
 import org.mixare.gui.TextObj;
@@ -122,7 +119,7 @@ public class GraffitiMarker extends Marker {
 			dw.setStrokeWidth(1f);
 			dw.setFill(true);
 			// dw.paintObjectBottom(txtLab, dw.getWidth()/2 - txtLab.getWidth() / 2, (float) (dw.getHeight() * 0.75), currentAngle + 90, 1);
-			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + maxHeight, currentAngle + 90, 1);
+			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2, signMarker.y + maxHeight -200, currentAngle + 90, 1);
 
 		}
 	}
