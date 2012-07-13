@@ -11,7 +11,6 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,8 +27,6 @@ import com.uofc.roomfinder.android.util.Constants;
 import com.uofc.roomfinder.android.util.LocationHandler;
 import com.uofc.roomfinder.android.util.Util;
 import com.uofc.roomfinder.android.util.tasks.AddFriend;
-import com.uofc.roomfinder.android.util.tasks.RouteDownloader;
-import com.uofc.roomfinder.util.UrlReader;
 
 public class MainMenu extends ListActivity {
 
@@ -122,6 +119,7 @@ public class MainMenu extends ListActivity {
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
 				System.out.println("value: " + value);
@@ -155,6 +153,7 @@ public class MainMenu extends ListActivity {
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
 				new AddFriend().execute(Util.loadUsername(), value);
@@ -162,6 +161,7 @@ public class MainMenu extends ListActivity {
 		});
 
 		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			@Override
 			public void onClick(DialogInterface dialog, int whichButton) {
 				// Canceled.
 			}

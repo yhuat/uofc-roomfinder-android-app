@@ -6,9 +6,6 @@ import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.SpatialReference;
 import com.esri.core.map.Graphic;
-import com.esri.core.symbol.SimpleMarkerSymbol;
-import com.esri.core.symbol.SimpleMarkerSymbol.STYLE;
-import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.entities.Point3D;
 
 import static com.uofc.roomfinder.android.util.Constants.*;

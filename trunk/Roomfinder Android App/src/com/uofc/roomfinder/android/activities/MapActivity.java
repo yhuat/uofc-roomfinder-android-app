@@ -1,9 +1,5 @@
 package com.uofc.roomfinder.android.activities;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -22,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.esri.android.map.event.OnStatusChangedListener;
-import com.esri.core.geometry.Point;
 import com.uofc.roomfinder.R;
 import com.uofc.roomfinder.android.DataModel;
 import com.uofc.roomfinder.android.map.MapDrawer;
